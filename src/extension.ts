@@ -20,7 +20,71 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	const createJavaProjectDisposable = vscode.commands.registerCommand('itsc2214-create-java-project.createJavaProject', async () => {
-		vscode.window.showInformationMessage('Create Java Project command executed!');
+		const os = require('os');
+		const path = require('path');
+		const fs = require('fs');
+
+		const desktopDir = path.join(os.homedir(), 'Desktop');
+		let itsc2214Dir = path.join(desktopDir, 'itsc2214');
+
+		if (!fs.existsSync(itsc2214Dir)) {
+			const createFolder = await vscode.window.showInformationMessage(
+				"No 'itsc2214' folder found on your Desktop. Would you like to select a location to create one?",
+				'Yes', 'No'
+			);
+			if (createFolder === 'Yes') {
+				const folderUris = await vscode.window.showOpenDialog({
+					canSelectFolders: true,
+					canSelectFiles: false,
+					canSelectMany: false,
+					openLabel: 'Select location for itsc2214 folder'
+				});
+				if (folderUris && folderUris[0]) {
+					itsc2214Dir = path.join(folderUris[0].fsPath, 'itsc2214');
+					if (!fs.existsSync(itsc2214Dir)) {
+						fs.mkdirSync(itsc2214Dir);
+						const jarsDir = path.join(itsc2214Dir, 'JARS');
+						fs.mkdirSync(jarsDir);
+						vscode.window.showInformationMessage(`Created itsc2214 folder and JARS folder at: ${itsc2214Dir}`);
+					} else {
+						vscode.window.showInformationMessage(`itsc2214 folder already exists at: ${itsc2214Dir}`);
+					}
+				} else {
+					vscode.window.showWarningMessage('No location selected. Command cancelled.');
+					return;
+				}
+			} else {
+				vscode.window.showWarningMessage('Command cancelled.');
+				return;
+			}
+		}
+
+		const jarsDir = path.join(itsc2214Dir, 'JARS');
+		if (!fs.existsSync(jarsDir)) {
+			const selectJars = await vscode.window.showInformationMessage(
+				"No 'JARS' folder found in the itsc2214 folder. Would you like to select a JARS folder?",
+				'Yes', 'No'
+			);
+			if (selectJars === 'Yes') {
+				const jarsUris = await vscode.window.showOpenDialog({
+					canSelectFolders: true,
+					canSelectFiles: false,
+					canSelectMany: false,
+					openLabel: 'Select JARS folder'
+				});
+				if (jarsUris && jarsUris[0]) {
+					vscode.window.showInformationMessage(`JARS folder selected: ${jarsUris[0].fsPath}`);
+				} else {
+					vscode.window.showWarningMessage('No JARS folder selected. Command cancelled.');
+					return;
+				}
+			} else {
+				vscode.window.showWarningMessage('Command cancelled.');
+				return;
+			}
+		} else {
+			vscode.window.showInformationMessage('Found JARS folder in itsc2214.');
+		}
 	});
 
 	context.subscriptions.push(disposable);
