@@ -24,7 +24,13 @@ export function activate(context: vscode.ExtensionContext) {
 		const path = require('path');
 		const fs = require('fs');
 
-		const desktopDir = path.join(os.homedir(), 'Desktop');
+		// Get the local Desktop path (avoid OneDrive)
+		let desktopDir: string;
+		if (process.platform === 'win32') {
+			desktopDir = require('path').join(process.env.USERPROFILE || '', 'Desktop');
+		} else {
+			desktopDir = require('path').join(require('os').homedir(), 'Desktop');
+		}
 		let itsc2214Dir = path.join(desktopDir, 'itsc2214');
 
 		if (!fs.existsSync(itsc2214Dir)) {
