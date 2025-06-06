@@ -19,7 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from Create Java Project!');
 	});
 
+	const createJavaProjectDisposable = vscode.commands.registerCommand('itsc2214-create-java-project.createJavaProject', async () => {
+		vscode.window.showInformationMessage('Create Java Project command executed!');
+	});
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(createJavaProjectDisposable);
 }
 
 // This method is called when your extension is deactivated

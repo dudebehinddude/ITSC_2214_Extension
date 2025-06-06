@@ -16,6 +16,10 @@
       {
         "command": "itsc2214-create-java-project.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "itsc2214-create-java-project.createJavaProject",
+        "title": "Create Java Project"
       }
     ]
   },
