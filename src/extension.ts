@@ -90,6 +90,58 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		} else {
 			vscode.window.showInformationMessage('Found JARS folder in itsc2214.');
+
+			// Prompt for new project name
+			const projectName = await vscode.window.showInputBox({
+				prompt: 'Enter a name for your new Java project',
+				placeHolder: 'MyJavaProject',
+				validateInput: (value) => {
+					if (!value || value.trim().length === 0) {
+						return 'Project name cannot be empty';
+					}
+					if (/[/\\:*?"<>|]/.test(value)) {
+						return 'Project name contains invalid characters';
+					}
+					return null;
+				}
+			});
+			if (!projectName) {
+				vscode.window.showWarningMessage('No project name provided. Command cancelled.');
+				return;
+			}
+
+			const projectDir = path.join(itsc2214Dir, projectName);
+			if (fs.existsSync(projectDir)) {
+				vscode.window.showWarningMessage(`A project named "${projectName}" already exists.`);
+				return;
+			}
+
+			// Create project structure
+			fs.mkdirSync(projectDir);
+			fs.mkdirSync(path.join(projectDir, 'src'));
+			fs.mkdirSync(path.join(projectDir, 'lib'));
+			fs.mkdirSync(path.join(projectDir, '.vscode'));
+
+			// Optionally, create a sample Main.java
+			const mainJavaPath = path.join(projectDir, 'src', 'Main.java');
+			fs.writeFileSync(mainJavaPath, `public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, ITSC2214!\");\n    }\n}`);
+
+			// Optionally, create a .gitignore
+			fs.writeFileSync(path.join(projectDir, '.gitignore'), 'lib/\n.vscode/\n');
+
+			// Optionally, create a README
+			fs.writeFileSync(path.join(projectDir, 'README.md'), `# ${projectName}\n\nJava project created by ITSC2214 VS Code extension.\n`);
+
+			// Create a basic .vscode/settings.json referencing the JARS folder for Java classpath
+			const settingsJsonPath = path.join(projectDir, '.vscode', 'settings.json');
+			const settingsJson = {
+				"java.project.referencedLibraries": [
+					path.join(jarsDir, "*.jar")
+				]
+			};
+			fs.writeFileSync(settingsJsonPath, JSON.stringify(settingsJson, null, 4));
+
+			vscode.window.showInformationMessage(`Java project '${projectName}' created in itsc2214.`);
 		}
 	});
 
