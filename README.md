@@ -34,7 +34,7 @@ Calling out known issues can help limit users opening duplicate issues against y
 ### 1.0.0
 
 Initial release of itsc2214-java-create-project
-Added proper filepath checking features.
+\nAdded proper filepath checking features.
 Added project creation with JAR reference.
 Planning to add webcat submitter without snarfer.
 

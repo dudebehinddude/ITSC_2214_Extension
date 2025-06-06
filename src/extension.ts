@@ -16,21 +16,38 @@ export function activate(context: vscode.ExtensionContext) {
 		const path = require('path');
 		const fs = require('fs');
 
-		// Get the local Desktop path
+		// Get the extension context for globalState
+		const extensionContext = vscode.extensions.getExtension('yourpublisher.itsc2214-create-java-project')?.exports?.context;
+
+		// Helper to get and set saved itsc2214 path
+		function getSavedItsc2214Path(): string | undefined {
+			return extensionContext?.globalState.get('itsc2214Dir');
+		}
+		async function setSavedItsc2214Path(dir: string) {
+			await extensionContext?.globalState.update('itsc2214Dir', dir);
+		}
+
+		// Get the local Desktop path (avoid OneDrive)
 		let desktopDir: string;
 		if (process.platform === 'win32') {
 			desktopDir = require('path').join(process.env.USERPROFILE || '', 'Desktop');
 		} else {
 			desktopDir = require('path').join(require('os').homedir(), 'Desktop');
 		}
-		let itsc2214Dir = path.join(desktopDir, 'itsc2214');
+		let itsc2214Dir = getSavedItsc2214Path() || path.join(desktopDir, 'itsc2214');
 
 		if (!fs.existsSync(itsc2214Dir)) {
 			const createFolder = await vscode.window.showInformationMessage(
-				"No 'itsc2214' folder found on your Desktop. Would you like to select a location to create one?",
-				'Yes', 'No'
+				"No 'itsc2214' folder found. Where would you like to create it?",
+				'Create at Desktop', 'Select location'
 			);
-			if (createFolder === 'Yes') {
+			if (createFolder === 'Create at Desktop') {
+				fs.mkdirSync(itsc2214Dir, { recursive: true });
+				const jarsDir = path.join(itsc2214Dir, 'JARS');
+				fs.mkdirSync(jarsDir, { recursive: true });
+				await setSavedItsc2214Path(itsc2214Dir);
+				vscode.window.showInformationMessage(`Created itsc2214 folder and JARS folder at: ${itsc2214Dir}`);
+			} else if (createFolder === 'Select location') {
 				const folderUris = await vscode.window.showOpenDialog({
 					canSelectFolders: true,
 					canSelectFiles: false,
@@ -40,13 +57,14 @@ export function activate(context: vscode.ExtensionContext) {
 				if (folderUris && folderUris[0]) {
 					itsc2214Dir = path.join(folderUris[0].fsPath, 'itsc2214');
 					if (!fs.existsSync(itsc2214Dir)) {
-						fs.mkdirSync(itsc2214Dir);
+						fs.mkdirSync(itsc2214Dir, { recursive: true });
 						const jarsDir = path.join(itsc2214Dir, 'JARS');
-						fs.mkdirSync(jarsDir);
+						fs.mkdirSync(jarsDir, { recursive: true });
 						vscode.window.showInformationMessage(`Created itsc2214 folder and JARS folder at: ${itsc2214Dir}`);
 					} else {
 						vscode.window.showInformationMessage(`itsc2214 folder already exists at: ${itsc2214Dir}`);
 					}
+					await setSavedItsc2214Path(itsc2214Dir);
 				} else {
 					vscode.window.showWarningMessage('No location selected. Command cancelled.');
 					return;
