@@ -142,6 +142,14 @@ export function activate(context: vscode.ExtensionContext) {
 			fs.writeFileSync(settingsJsonPath, JSON.stringify(settingsJson, null, 4));
 
 			vscode.window.showInformationMessage(`Java project '${projectName}' created in itsc2214.`);
+
+			// Reveal the new project in the file explorer and open Main.java
+			const mainJavaUri = vscode.Uri.file(mainJavaPath);
+			await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectDir), false);
+			// Wait a bit for the folder to open, then open Main.java
+			setTimeout(() => {
+				vscode.window.showTextDocument(mainJavaUri);
+			}, 1000);
 		}
 	});
 
