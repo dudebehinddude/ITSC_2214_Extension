@@ -8,23 +8,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "itsc2214-create-java-project" is now active!');
+	console.log('itsc2214-create-java-project is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('itsc2214-create-java-project.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Create Java Project!');
-	});
 
 	const createJavaProjectDisposable = vscode.commands.registerCommand('itsc2214-create-java-project.createJavaProject', async () => {
 		const os = require('os');
 		const path = require('path');
 		const fs = require('fs');
 
-		// Get the local Desktop path (avoid OneDrive)
+		// Get the local Desktop path
 		let desktopDir: string;
 		if (process.platform === 'win32') {
 			desktopDir = require('path').join(process.env.USERPROFILE || '', 'Desktop');
@@ -91,6 +83,12 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			vscode.window.showInformationMessage('Found JARS folder in itsc2214.');
 
+			// Check for JAR files in the JARS folder
+			const jarFiles = fs.readdirSync(jarsDir).filter((file: string) => file.endsWith('.jar'));
+			if (jarFiles.length === 0) {
+				vscode.window.showWarningMessage('No JAR files found in the JARS folder. The project will be created, but no libraries will be referenced.');
+			}
+
 			// Prompt for new project name
 			const projectName = await vscode.window.showInputBox({
 				prompt: 'Enter a name for your new Java project',
@@ -122,15 +120,9 @@ export function activate(context: vscode.ExtensionContext) {
 			fs.mkdirSync(path.join(projectDir, 'lib'));
 			fs.mkdirSync(path.join(projectDir, '.vscode'));
 
-			// Optionally, create a sample Main.java
 			const mainJavaPath = path.join(projectDir, 'src', 'Main.java');
 			fs.writeFileSync(mainJavaPath, `public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, ITSC2214!\");\n    }\n}`);
 
-			// Optionally, create a .gitignore
-			fs.writeFileSync(path.join(projectDir, '.gitignore'), 'lib/\n.vscode/\n');
-
-			// Optionally, create a README
-			fs.writeFileSync(path.join(projectDir, 'README.md'), `# ${projectName}\n\nJava project created by ITSC2214 VS Code extension.\n`);
 
 			// Create a basic .vscode/settings.json referencing the JARS folder for Java classpath
 			const settingsJsonPath = path.join(projectDir, '.vscode', 'settings.json');
@@ -153,7 +145,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposable);
 	context.subscriptions.push(createJavaProjectDisposable);
 }
 

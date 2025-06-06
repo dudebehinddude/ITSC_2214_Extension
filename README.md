@@ -14,18 +14,16 @@ For example if there is an image subfolder under your extension project workspac
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Currently none.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
+* Nothing
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+
+This extension contributes the following commands:
+* `itsc2214-create-java-project.createJavaProject`: Create a new pure Java project referencing local JARS.
 
 ## Known Issues
 
@@ -33,11 +31,12 @@ Calling out known issues can help limit users opening duplicate issues against y
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
+Initial release of itsc2214-java-create-project
+Added proper filepath checking features.
+Added project creation with JAR reference.
+Planning to add webcat submitter without snarfer.
 
 ### 1.0.1
 
