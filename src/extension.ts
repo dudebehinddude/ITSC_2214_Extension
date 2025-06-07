@@ -156,9 +156,10 @@ export function activate(context: vscode.ExtensionContext) {
 			// Reveal the new project in the file explorer and open Main.java
 			const mainJavaUri = vscode.Uri.file(mainJavaPath);
 			await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectDir), false);
-			// Wait a bit for the folder to open, then open Main.java
+			// Wait a bit for the folder to open, then open and reveal Main.java
 			setTimeout(() => {
-				vscode.window.showTextDocument(mainJavaUri);
+				vscode.window.showTextDocument(mainJavaUri, { preview: false, preserveFocus: false });
+				vscode.commands.executeCommand('revealInExplorer', mainJavaUri);
 			}, 1000);
 		}
 	});
