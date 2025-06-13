@@ -74,7 +74,7 @@
         {
           "id": "itsc2214Explorer",
           "title": "ITSC2214",
-          "icon": "media/itsc2214.svg"
+          "icon": "icon.png"
         }
       ]
     },
@@ -146,7 +146,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "archiver": "^5.3.1",
     "xml2js": "^0.6.2"
+  },
+  "optionalDependencies": {
+    "archiver": "^5.3.1"
   }
 }

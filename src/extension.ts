@@ -565,9 +565,16 @@ public void methodName()
     async function createProjectArchive(projectPath: string, zipPath: string): Promise<void> {
         return new Promise((resolve, reject) => {
             try {
-                // This is a simplified implementation
-                // In a real extension, you'd use a proper zip library like 'archiver'
-                const archiver = require('archiver');
+                // Check if archiver is available before using it
+                let archiver;
+                try {
+                    archiver = require('archiver');
+                } catch (error) {
+                    console.warn('Archiver module not available, falling back to direct submission');
+                    resolve();
+                    return;
+                }
+
                 const output = fs.createWriteStream(zipPath);
                 const archive = archiver('zip', { zlib: { level: 9 } });
 
@@ -576,7 +583,8 @@ public void methodName()
                 });
 
                 archive.on('error', (err: any) => {
-                    reject(err);
+                    console.warn('Archive creation failed, falling back to direct submission:', err);
+                    resolve(); // Don't reject, just continue without zip
                 });
 
                 archive.pipe(output);
@@ -604,8 +612,8 @@ public void methodName()
 
                 archive.finalize();
             } catch (error) {
-                // Fallback: if archiver is not available, just open the submit URL
-                console.warn('Archiver not available, opening submit URL directly');
+                // Fallback: if archiver is not available, just continue
+                console.warn('Archiver not available, opening submit URL directly:', error);
                 resolve();
             }
         });
