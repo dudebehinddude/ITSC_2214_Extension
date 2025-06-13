@@ -10,13 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:itsc2214-create-java-project.createJavaProject",
-    "onCommand:itsc2214-create-java-project.downloadAssignment",
-    "onCommand:itsc2214-create-java-project.uploadProject",
-    "onCommand:itsc2214-create-java-project.reinstallJars",
-    "onCommand:itsc2214-create-java-project.setDownloadUrl",
-    "onCommand:itsc2214-create-java-project.setUploadUrl",
-    "onView:itsc2214ExplorerView" 
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
