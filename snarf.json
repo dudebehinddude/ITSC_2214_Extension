@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Assignment 01 - Hello World",
+    "description": "Basic starter assignment printing Hello, ITSC2214!",
+    "url": "https://example.com/assignments/Assignment01-HelloWorld.zip"
+  },
+  {
+    "label": "Assignment 02 - Loops and Arrays",
+    "description": "Practice using loops, arrays, and input/output.",
+    "url": "https://example.com/assignments/Assignment02-LoopsAndArrays.zip"
+  },
+  {
+    "label": "Assignment 03 - Classes and Objects",
+    "description": "Introduction to classes, constructors, and encapsulation.",
+    "url": "https://example.com/assignments/Assignment03-ClassesAndObjects.zip"
+  }
+]

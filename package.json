@@ -9,19 +9,121 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:itsc2214-create-java-project.createJavaProject",
+    "onCommand:itsc2214-create-java-project.downloadAssignment",
+    "onCommand:itsc2214-create-java-project.uploadProject",
+    "onCommand:itsc2214-create-java-project.reinstallJars",
+    "onCommand:itsc2214-create-java-project.setDownloadUrl",
+    "onCommand:itsc2214-create-java-project.setUploadUrl"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "itsc2214-create-java-project.helloWorld",
-        "title": "Hello World"
+        "command": "itsc2214-create-java-project.createJavaProject",
+        "title": "ITSC2214: Create Java Project"
       },
       {
-        "command": "itsc2214-create-java-project.createJavaProject",
-        "title": "Create Java Project"
+        "command": "itsc2214-create-java-project.downloadAssignment",
+        "title": "ITSC2214: Download Assignment"
+      },
+      {
+        "command": "itsc2214-create-java-project.uploadProject",
+        "title": "ITSC2214: Upload Project"
+      },
+      {
+        "command": "itsc2214-create-java-project.reinstallJars",
+        "title": "ITSC2214: Reinstall JARs"
+      },
+      {
+        "command": "itsc2214-create-java-project.setDownloadUrl",
+        "title": "ITSC2214: Set Assignment Download URL"
+      },
+      {
+        "command": "itsc2214-create-java-project.setUploadUrl",
+        "title": "ITSC2214: Set Project Upload URL"
+      },
+      {
+        "command": "itsc2214-create-java-project.refreshAssignments",
+        "title": "ITSC2214: Refresh Assignments View"
+      },
+      {
+        "command": "itsc2214-create-java-project.openView",
+        "title": "ITSC2214: Open Assignments View"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "ITSC2214 Project Settings",
+      "properties": {
+        "itsc2214.downloadURL": {
+          "type": "string",
+          "default": "https://webpages.charlotte.edu/mperez19/itsc2214/2025Spring/snarf.xml",
+          "description": "The URL to the Snarf XML file listing available assignments."
+        },
+        "itsc2214.submitURL": {
+          "type": "string",
+          "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC",
+          "description": "The URL for submitting projects to Web-CAT."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "itsc2214Explorer",
+          "title": "ITSC2214",
+          "icon": "media/itsc2214.svg"
+        }
+      ]
+    },
+    "views": {
+      "itsc2214Explorer": [
+        {
+          "id": "itsc2214ExplorerView",
+          "name": "Assignments",
+          "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "extension/context": [
+        {
+          "command": "itsc2214-create-java-project.openView",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "itsc2214-create-java-project.refreshAssignments",
+          "when": "view == itsc2214ExplorerView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "itsc2214-create-java-project.downloadAssignment",
+          "when": "view == itsc2214ExplorerView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "itsc2214-create-java-project.uploadProject",
+          "when": "view == itsc2214ExplorerView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "itsc2214-create-java-project.reinstallJars",
+          "when": "view == itsc2214ExplorerView",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+            "command": "itsc2214-create-java-project.reinstallJars",
+            "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -41,5 +143,9 @@
     "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2"
+  },
+  "dependencies": {
+    "xml2js": "^0.6.2",
+    "archiver": "^5.3.1"
   }
 }
