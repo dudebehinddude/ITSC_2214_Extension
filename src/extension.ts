@@ -186,7 +186,16 @@ class AssignmentProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 }
 
+function isPlatformSupported(): boolean {
+    const platform = require('os').platform();
+    return ['darwin', 'win32', 'linux'].includes(platform);
+}
+
 export function activate(context: vscode.ExtensionContext) {
+    console.log('ITSC2214 Extension activating...');
+    console.log('Platform:', require('os').platform());
+    console.log('Extension path:', context.extensionPath);
+    console.log('Platform supported:', isPlatformSupported());
 
     console.log('ITSC2214 Extension is now active!');
 
