@@ -510,7 +510,7 @@ public void methodName()
         }
 
         const config = vscode.workspace.getConfiguration('itsc2214');
-        const submitURL = config.get<string>('submitURL');
+        const submitURL = config.get<string>('signonURL');
 
         if (!submitURL) {
             const result = await vscode.window.showErrorMessage(

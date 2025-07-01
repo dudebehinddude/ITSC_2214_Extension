@@ -56,10 +56,10 @@
           "default": "https://webpages.charlotte.edu/mperez19/itsc2214/2025Spring/snarf.xml",
           "description": "The URL to the Snarf XML file listing available assignments."
         },
-        "itsc2214.submitURL": {
+        "itsc2214.signonURL": {
           "type": "string",
-          "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC",
-          "description": "The URL for submitting projects to Web-CAT."
+          "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa",
+          "description": "The URL for signing into Web-CAT."
         }
       }
     },
@@ -68,7 +68,7 @@
         {
           "id": "itsc2214Explorer",
           "title": "ITSC2214",
-          "icon": "icon.png"
+          "icon": "src/icon.png"
         }
       ]
     },

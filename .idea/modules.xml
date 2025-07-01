@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/itsc2214-create-java-project.iml" filepath="$PROJECT_DIR$/.idea/itsc2214-create-java-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ITSC2214_Extension.iml" filepath="$PROJECT_DIR$/.idea/ITSC2214_Extension.iml" />
     </modules>
   </component>
 </project>
