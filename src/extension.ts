@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
 
+console.log("In extension.ts file")
 // --- INTERFACES ---
 interface JarInstallResult {
     success: boolean;
