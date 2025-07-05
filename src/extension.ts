@@ -191,13 +191,55 @@ function isPlatformSupported(): boolean {
     return ['darwin', 'win32', 'linux'].includes(platform);
 }
 
-export function activate(context: vscode.ExtensionContext) {
-    console.log('ITSC2214 Extension activating...');
-    console.log('Platform:', require('os').platform());
-    console.log('Extension path:', context.extensionPath);
-    console.log('Platform supported:', isPlatformSupported());
+console.log('ITSC2214: Extension file being loaded...');
+console.log('ITSC2214: Platform at load time:', require('os').platform());
+console.log('ITSC2214: Node version:', process.version);
+console.log('ITSC2214: VS Code version:', vscode.version);
 
-    console.log('ITSC2214 Extension is now active!');
+export function activate(context: vscode.ExtensionContext) {
+    try {
+        console.log('ITSC2214: === ACTIVATION STARTING ===');
+        console.log('ITSC2214: Extension activating...');
+        console.log('ITSC2214: Platform:', require('os').platform());
+        console.log('ITSC2214: Extension path:', context.extensionPath);
+        console.log('ITSC2214: Platform supported:', isPlatformSupported());
+        console.log('ITSC2214: Home directory:', require('os').homedir());
+        console.log('ITSC2214: Temp directory:', require('os').tmpdir());
+        console.log('ITSC2214: Current working directory:', process.cwd());
+        console.log('ITSC2214: Extension context global state available:', !!context.globalState);
+        console.log('ITSC2214: VS Code workspace folders:', vscode.workspace.workspaceFolders?.length || 0);
+        
+        // Check file system access
+        const fs = require('fs');
+        const path = require('path');
+        console.log('ITSC2214: Testing file system access...');
+        try {
+            const testPath = context.extensionPath;
+            const extensionPathExists = fs.existsSync(testPath);
+            console.log('ITSC2214: Extension path exists:', extensionPathExists);
+            
+            if (extensionPathExists) {
+                const jarPath = path.join(context.extensionPath, 'src', 'JARS');
+                const jarPathExists = fs.existsSync(jarPath);
+                console.log('ITSC2214: JAR path exists:', jarPathExists);
+                
+                if (jarPathExists) {
+                    const jarFiles = fs.readdirSync(jarPath);
+                    console.log('ITSC2214: JAR files found:', jarFiles.length);
+                }
+            }
+        } catch (fsError: any) {
+            console.error('ITSC2214: File system test failed:', fsError.message);
+        }
+
+                 console.log('ITSC2214: Extension is now active!');
+    } catch (activationError: any) {
+        console.error('ITSC2214: ACTIVATION FAILED:', activationError);
+        console.error('ITSC2214: Error message:', activationError.message);
+        console.error('ITSC2214: Error stack:', activationError.stack);
+        vscode.window.showErrorMessage(`ITSC2214 Extension failed to activate: ${activationError.message}`);
+        throw activationError; // Re-throw to let VS Code know activation failed
+    }
 
     // --- HELPER FUNCTIONS ---
 
@@ -677,4 +719,7 @@ public void methodName()
     context.subscriptions.push(createJavaProjectCommand, reinstallJarsCommand, downloadAssignmentCommand, setDownloadUrlCommand, setUploadUrlCommand, uploadProjectCommand, openViewCommand);
 }
 
-export function deactivate() {}
+export function deactivate() {
+    console.log('ITSC2214: Extension deactivating...');
+    console.log('ITSC2214: === DEACTIVATION COMPLETE ===');
+}
