@@ -1,8 +1,8 @@
 {
-  "name": "itsc2214-create-java-project",
-  "displayName": "Create Java Project",
-  "description": "Create an ITSC2214 approved Java project!",
-  "version": "0.0.1",
+  "name": "itsc2214-extension",
+  "displayName": "ITSC 2214",
+  "description": "An extension for UNCC ITSC2214",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^0.100.0"
   },
@@ -16,35 +16,35 @@
   "contributes": {
     "commands": [
       {
-        "command": "itsc2214-create-java-project.createJavaProject",
+        "command": "itsc2214-extension.createJavaProject",
         "title": "ITSC2214: Create Java Project"
       },
       {
-        "command": "itsc2214-create-java-project.downloadAssignment",
+        "command": "itsc2214-extension.downloadAssignment",
         "title": "ITSC2214: Download Assignment"
       },
       {
-        "command": "itsc2214-create-java-project.uploadProject",
+        "command": "itsc2214-extension.uploadProject",
         "title": "ITSC2214: Upload Project"
       },
       {
-        "command": "itsc2214-create-java-project.reinstallJars",
+        "command": "itsc2214-extension.reinstallJars",
         "title": "ITSC2214: Reinstall JARs"
       },
       {
-        "command": "itsc2214-create-java-project.setDownloadUrl",
+        "command": "itsc2214-extension.setDownloadUrl",
         "title": "ITSC2214: Set Assignment Download URL"
       },
       {
-        "command": "itsc2214-create-java-project.setUploadUrl",
+        "command": "itsc2214-extension.setUploadUrl",
         "title": "ITSC2214: Set Project Upload URL"
       },
       {
-        "command": "itsc2214-create-java-project.refreshAssignments",
+        "command": "itsc2214-extension.refreshAssignments",
         "title": "ITSC2214: Refresh Assignments View"
       },
       {
-        "command": "itsc2214-create-java-project.openView",
+        "command": "itsc2214-extension.openView",
         "title": "ITSC2214: Open Assignments View"
       }
     ],
@@ -84,37 +84,37 @@
     "menus": {
       "extension/context": [
         {
-          "command": "itsc2214-create-java-project.openView",
+          "command": "itsc2214-extension.openView",
           "group": "navigation"
         }
       ],
       "view/title": [
         {
-          "command": "itsc2214-create-java-project.refreshAssignments",
+          "command": "itsc2214-extension.refreshAssignments",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "itsc2214-create-java-project.downloadAssignment",
+          "command": "itsc2214-extension.downloadAssignment",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@1"
         },
         {
-          "command": "itsc2214-create-java-project.uploadProject",
+          "command": "itsc2214-extension.uploadProject",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@2"
         },
         {
-          "command": "itsc2214-create-java-project.reinstallJars",
+          "command": "itsc2214-extension.reinstallJars",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@3"
         }
       ],
       "explorer/context": [
         {
-          "command": "itsc2214-create-java-project.reinstallJars",
+          "command": "itsc2214-extension.reinstallJars",
           "group": "navigation"
         }
       ]
@@ -131,10 +131,12 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/vscode": "^1.100.0",
+    "@types/node": "^20.12.5",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "node-fetch": "^2.6.1"
   },
   "optionalDependencies": {
     "archiver": "^5.3.1"
