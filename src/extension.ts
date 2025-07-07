@@ -710,6 +710,7 @@ public void methodName()
     });
 
     const assignmentProvider = new AssignmentProvider();
+    console.log("!!! Creating Tree View !!!")
     vscode.window.createTreeView('itsc2214ExplorerView', { treeDataProvider: assignmentProvider });
     vscode.commands.registerCommand('itsc2214-create-java-project.refreshAssignments', () => assignmentProvider.refresh());
 
