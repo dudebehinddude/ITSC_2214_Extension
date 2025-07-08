@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
+import { reinstallJars, areJarsPresent } from "./createProject";
 
-console.log("In extension.ts file")
 // --- INTERFACES ---
 interface JarInstallResult {
     success: boolean;
@@ -24,31 +22,6 @@ interface SubmissionTarget {
     assignmentId?: string;
 }
 
-function fetchJson<T>(url: string): Promise<T> {
-    return new Promise((resolve, reject) => {
-        const isHttps = url.startsWith('https:');
-        const client = isHttps ? https : http;
-        
-        client.get(url, (res) => {
-            if (res.statusCode !== 200) {
-                return reject(new Error(`Request Failed. Status Code: ${res.statusCode}`));
-            }
-            res.setEncoding('utf8');
-            let rawData = '';
-            res.on('data', (chunk) => { rawData += chunk; });
-            res.on('end', () => {
-                try {
-                    resolve(JSON.parse(rawData) as T);
-                } catch (e: any) {
-                    reject(new Error(`Failed to parse JSON response: ${e.message}`));
-                }
-            });
-        }).on('error', (e) => {
-            reject(new Error(`HTTP(S) request failed: ${e.message}`));
-        });
-    });
-}
-
 class CommandItem extends vscode.TreeItem {
     constructor(label: string, commandString: string, icon: string) {
         super(label, vscode.TreeItemCollapsibleState.None);
@@ -60,251 +33,33 @@ class CommandItem extends vscode.TreeItem {
     }
 }
 
-class AssignmentProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | null | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
-
-    refresh(): void {
-        this._onDidChangeTreeData.fire();
-    }
-
-    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
-        return element;
-    }
-
-    async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
-        if (!element) {
-            // Root level - show main sections
-            const uploadSection = new vscode.TreeItem('Submit', vscode.TreeItemCollapsibleState.Expanded);
-            uploadSection.iconPath = new vscode.ThemeIcon('cloud-upload');
-            uploadSection.tooltip = 'Project submission options';
-            uploadSection.contextValue = 'uploadSection';
-
-            const downloadSection = new vscode.TreeItem('Download', vscode.TreeItemCollapsibleState.Expanded);
-            downloadSection.iconPath = new vscode.ThemeIcon('cloud-download');
-            downloadSection.tooltip = 'Available assignments to download';
-            downloadSection.contextValue = 'downloadSection';
-
-            return [uploadSection, downloadSection];
-        }
-
-        if (element.contextValue === 'uploadSection') {
-            // Upload section children - show available submission targets
-            const config = vscode.workspace.getConfiguration('itsc2214');
-            const submitURL = config.get<string>('submitURL');
-            
-            if (!submitURL) {
-                const configItem = new vscode.TreeItem('Configure Submit URL', vscode.TreeItemCollapsibleState.None);
-                configItem.command = {
-                    command: 'itsc2214-create-java-project.setUploadUrl',
-                    title: 'Set Submit URL'
-                };
-                configItem.iconPath = new vscode.ThemeIcon('settings-gear');
-                configItem.tooltip = 'Set the URL for submitting projects';
-                return [configItem];
-            }
-
-            try {
-                // For now, create a generic submission item that opens the submit URL
-                // In a real implementation, you might fetch available assignments from the submit URL
-                const submitItem = new vscode.TreeItem('Submit Current Project', vscode.TreeItemCollapsibleState.None);
-                submitItem.command = {
-                    command: 'itsc2214-create-java-project.uploadProject',
-                    title: 'Submit Project'
-                };
-                submitItem.iconPath = new vscode.ThemeIcon('rocket');
-                submitItem.tooltip = 'Submit the currently open project to Web-CAT for grading';
-                submitItem.contextValue = 'submitItem';
-
-                return [submitItem];
-            } catch (error: any) {
-                console.error(`Failed to load submission targets: ${error.message}`);
-                const errorItem = new vscode.TreeItem('Failed to load submission targets', vscode.TreeItemCollapsibleState.None);
-                errorItem.iconPath = new vscode.ThemeIcon('error');
-                errorItem.tooltip = `Error: ${error.message}. Check the submit URL in settings.`;
-                errorItem.command = {
-                    command: 'itsc2214-create-java-project.setUploadUrl',
-                    title: 'Fix Submit URL'
-                };
-                return [errorItem];
-            }
-        }
-
-        if (element.contextValue === 'downloadSection') {
-            // Download section children
-            const config = vscode.workspace.getConfiguration('itsc2214');
-            const assignmentsURL = config.get<string>('downloadURL');
-            
-            if (!assignmentsURL) {
-                const configItem = new vscode.TreeItem('Configure Download URL', vscode.TreeItemCollapsibleState.None);
-                configItem.command = {
-                    command: 'itsc2214-create-java-project.setDownloadUrl',
-                    title: 'Set Download URL'
-                };
-                configItem.iconPath = new vscode.ThemeIcon('settings-gear');
-                configItem.tooltip = 'Set the URL for downloading assignments';
-                return [configItem];
-            }
-
-            try {
-                const assignments = await fetchJson<Assignment[]>(assignmentsURL);
-                const assignmentItems = assignments.map((a: Assignment) => {
-                    const item = new vscode.TreeItem(a.label, vscode.TreeItemCollapsibleState.None);
-                    item.description = a.description;
-                    item.command = {
-                        command: 'itsc2214-create-java-project.downloadAssignment',
-                        title: 'Download Assignment',
-                        arguments: [a]
-                    };
-                    item.tooltip = `Download ${a.label}`;
-                    item.iconPath = new vscode.ThemeIcon('file-zip');
-                    item.contextValue = 'assignmentItem';
-                    return item;
-                });
-
-                if (assignmentItems.length === 0) {
-                    const noAssignments = new vscode.TreeItem('No assignments available', vscode.TreeItemCollapsibleState.None);
-                    noAssignments.iconPath = new vscode.ThemeIcon('info');
-                    noAssignments.tooltip = 'No assignments found at the configured URL';
-                    return [noAssignments];
-                }
-
-                return assignmentItems;
-            } catch (error: any) {
-                console.error(`Failed to fetch assignments: ${error.message}`);
-                const errorItem = new vscode.TreeItem('Failed to load assignments', vscode.TreeItemCollapsibleState.None);
-                errorItem.iconPath = new vscode.ThemeIcon('error');
-                errorItem.tooltip = `Error: ${error.message}. Check the download URL in settings.`;
-                errorItem.command = {
-                    command: 'itsc2214-create-java-project.setDownloadUrl',
-                    title: 'Fix Download URL'
-                };
-                return [errorItem];
-            }
-        }
-
-        return [];
-    }
-}
-
-function isPlatformSupported(): boolean {
-    const platform = require('os').platform();
-    return ['darwin', 'win32', 'linux'].includes(platform);
-}
-
-console.log('ITSC2214: Extension file being loaded...');
-console.log('ITSC2214: Platform at load time:', require('os').platform());
 console.log('ITSC2214: Node version:', process.version);
 console.log('ITSC2214: VS Code version:', vscode.version);
 
 export function activate(context: vscode.ExtensionContext) {
-    try {
-        console.log('ITSC2214: === ACTIVATION STARTING ===');
-        console.log('ITSC2214: Extension activating...');
-        console.log('ITSC2214: Platform:', require('os').platform());
-        console.log('ITSC2214: Extension path:', context.extensionPath);
-        console.log('ITSC2214: Platform supported:', isPlatformSupported());
-        console.log('ITSC2214: Home directory:', require('os').homedir());
-        console.log('ITSC2214: Temp directory:', require('os').tmpdir());
-        console.log('ITSC2214: Current working directory:', process.cwd());
-        console.log('ITSC2214: Extension context global state available:', !!context.globalState);
-        console.log('ITSC2214: VS Code workspace folders:', vscode.workspace.workspaceFolders?.length || 0);
+    console.log('ITSC2214: === ACTIVATION STARTING ===');
+    console.log('ITSC2214: Extension activating...');
+    console.log('ITSC2214: Platform:', require('os').platform());
+    console.log('ITSC2214: Extension context global state available:', !!context.globalState);
+    
+    // Check file system access
+    const fs = require('fs');
+    const path = require('path');
+    
+    if (extensionPathExists) {
+        const jarPath = path.join(context.extensionPath, 'src', 'JARS');
+        const jarPathExists = fs.existsSync(jarPath);
+        console.log('ITSC2214: JAR path exists:', jarPathExists);
         
-        // Check file system access
-        const fs = require('fs');
-        const path = require('path');
-        console.log('ITSC2214: Testing file system access...');
-        try {
-            const testPath = context.extensionPath;
-            const extensionPathExists = fs.existsSync(testPath);
-            console.log('ITSC2214: Extension path exists:', extensionPathExists);
-            
-            if (extensionPathExists) {
-                const jarPath = path.join(context.extensionPath, 'src', 'JARS');
-                const jarPathExists = fs.existsSync(jarPath);
-                console.log('ITSC2214: JAR path exists:', jarPathExists);
-                
-                if (jarPathExists) {
-                    const jarFiles = fs.readdirSync(jarPath);
-                    console.log('ITSC2214: JAR files found:', jarFiles.length);
-                }
-            }
-        } catch (fsError: any) {
-            console.error('ITSC2214: File system test failed:', fsError.message);
-        }
-
-                 console.log('ITSC2214: Extension is now active!');
-    } catch (activationError: any) {
-        console.error('ITSC2214: ACTIVATION FAILED:', activationError);
-        console.error('ITSC2214: Error message:', activationError.message);
-        console.error('ITSC2214: Error stack:', activationError.stack);
-        vscode.window.showErrorMessage(`ITSC2214 Extension failed to activate: ${activationError.message}`);
-        throw activationError; // Re-throw to let VS Code know activation failed
-    }
-
-    // --- HELPER FUNCTIONS ---
-
-    async function reinstallJars(itsc2214Dir: string): Promise<JarInstallResult> {
-        const extensionJarsPath = path.join(context.extensionPath, 'src', 'JARS');
-        if (!fs.existsSync(extensionJarsPath)) {
-            vscode.window.showErrorMessage('FATAL: Extension JARs source not found. Please reinstall the extension.');
-            return { success: false, jarsCopied: 0 };
-        }
-
-        const projectJarsPath = path.join(itsc2214Dir, 'JARS');
-        if (!fs.existsSync(projectJarsPath)) {
-            fs.mkdirSync(projectJarsPath, { recursive: true });
-        }
-
-        try {
-            fs.readdirSync(projectJarsPath).forEach(file => {
-                if (file.endsWith('.jar')) {
-                    fs.unlinkSync(path.join(projectJarsPath, file));
-                }
-            });
-
-            const jarFiles = fs.readdirSync(extensionJarsPath).filter(file => file.endsWith('.jar'));
-            for (const jarFile of jarFiles) {
-                const sourcePath = path.join(extensionJarsPath, jarFile);
-                const destPath = path.join(projectJarsPath, jarFile);
-                fs.copyFileSync(sourcePath, destPath);
-            }
-            return { success: true, jarsCopied: jarFiles.length };
-        } catch (error) {
-            console.error("Error during JAR reinstallation:", error);
-            vscode.window.showErrorMessage('An error occurred while reinstalling JARs. Check the logs for details.');
-            return { success: false, jarsCopied: 0 };
+        if (jarPathExists) {
+            const jarFiles = fs.readdirSync(jarPath);
+            console.log('ITSC2214: JAR files found:', jarFiles.length);
         }
     }
 
-    function areJarsPresent(itsc2214Dir: string): boolean {
-        const projectJarsPath = path.join(itsc2214Dir, 'JARS');
-        if (!fs.existsSync(projectJarsPath)) {
-            return false;
-        }
-        const jarFiles = fs.readdirSync(projectJarsPath).filter(file => file.endsWith('.jar'));
-        return jarFiles.length > 0;
-    }
+    console.log('ITSC2214: Extension is now active!');
 
     // --- COMMANDS ---
-
-    const reinstallJarsCommand = vscode.commands.registerCommand('itsc2214-create-java-project.reinstallJars', async () => {
-        const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
-        if (!itsc2214Dir || !fs.existsSync(itsc2214Dir)) {
-            vscode.window.showErrorMessage('ITSC2214 directory not found. Please create a project first to set the location.');
-            return;
-        }
-
-        vscode.window.showInformationMessage('Reinstalling JARs...');
-        const result = await reinstallJars(itsc2214Dir);
-        if (result.success) {
-            if (result.jarsCopied > 0) {
-                vscode.window.showInformationMessage(`${result.jarsCopied} JARs reinstalled successfully.`);
-            } else {
-                vscode.window.showWarningMessage('No source JARs found in the extension. JARS folder is now empty.');
-            }
-        }
-    });
 
     const createJavaProjectCommand = vscode.commands.registerCommand('itsc2214-create-java-project.createJavaProject', async () => {
         let itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
@@ -459,84 +214,6 @@ public void methodName()
 		vscode.commands.executeCommand('vscode.open', mainJavaUri);
     });
 
-    const downloadAssignmentCommand = vscode.commands.registerCommand('itsc2214-create-java-project.downloadAssignment', async (assignment?: Assignment) => {
-        const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
-        if (!itsc2214Dir) {
-            vscode.window.showErrorMessage('Please create a project first to set your ITSC2214 directory.');
-            return;
-        }
-
-        let chosenAssignment: Assignment | undefined = assignment;
-
-        if (!chosenAssignment) {
-            const config = vscode.workspace.getConfiguration('itsc2214');
-            const assignmentsURL = config.get<string>('downloadURL');
-
-            if (!assignmentsURL) {
-                const result = await vscode.window.showErrorMessage(
-                    'No assignment download URL is configured in settings.',
-                    'Open Settings'
-                );
-                if (result === 'Open Settings') {
-                    vscode.commands.executeCommand('workbench.action.openSettings', 'itsc2214.downloadURL');
-                }
-                return;
-            }
-
-            try {
-                const assignments = await fetchJson<Assignment[]>(assignmentsURL);
-                chosenAssignment = await vscode.window.showQuickPick(assignments, {
-                    placeHolder: 'Select an assignment to download',
-                    matchOnDescription: true,
-                });
-
-            } catch (error: any) {
-                vscode.window.showErrorMessage(`Failed to get assignments: ${error.message}`);
-                return;
-            }
-        }
-
-        if (!chosenAssignment) { return; }
-
-        const fileName = path.basename(chosenAssignment.url);
-        const destPath = path.join(itsc2214Dir, fileName);
-
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: `Downloading ${fileName}`,
-            cancellable: true
-        }, (progress, token) => {
-            return new Promise<void>((resolve, reject) => {
-                const request = https.get(chosenAssignment.url, response => {
-                    if (response.statusCode !== 200) {
-                        reject(new Error(`Download failed: Server responded with status code ${response.statusCode}`));
-                        return;
-                    }
-                    const fileStream = fs.createWriteStream(destPath);
-                    response.pipe(fileStream);
-
-                    fileStream.on('finish', () => {
-                        fileStream.close();
-                        vscode.window.showInformationMessage(`Successfully downloaded to ${destPath}`);
-                        resolve();
-                    });
-
-                    fileStream.on('error', err => {
-                        fs.unlink(destPath, () => reject(err));
-                    });
-
-                    token.onCancellationRequested(() => {
-                        request.destroy();
-                        fs.unlink(destPath, () => reject(new Error("Download cancelled.")));
-                    });
-                });
-
-                request.on('error', err => {
-                    fs.unlink(destPath, () => reject(err));
-                });
-            });
-        });
-    });
 
     const uploadProjectCommand = vscode.commands.registerCommand('itsc2214-create-java-project.uploadProject', async () => {
         // Check if we have a workspace open
