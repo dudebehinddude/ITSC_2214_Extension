@@ -1,5 +1,5 @@
 {
-  "name": "itsc2214-extension",
+  "name": "itsc2214",
   "displayName": "ITSC 2214",
   "description": "An extension for UNCC ITSC2214",
   "version": "1.0.0",
@@ -16,35 +16,35 @@
   "contributes": {
     "commands": [
       {
-        "command": "itsc2214-extension.createJavaProject",
+        "command": "itsc2214.createJavaProject",
         "title": "ITSC2214: Create Java Project"
       },
       {
-        "command": "itsc2214-extension.downloadAssignment",
+        "command": "itsc2214.downloadAssignment",
         "title": "ITSC2214: Download Assignment"
       },
       {
-        "command": "itsc2214-extension.uploadProject",
+        "command": "itsc2214.uploadProject",
         "title": "ITSC2214: Upload Project"
       },
       {
-        "command": "itsc2214-extension.reinstallJars",
+        "command": "itsc2214.reinstallJars",
         "title": "ITSC2214: Reinstall JARs"
       },
       {
-        "command": "itsc2214-extension.setDownloadUrl",
+        "command": "itsc2214.setDownloadUrl",
         "title": "ITSC2214: Set Assignment Download URL"
       },
       {
-        "command": "itsc2214-extension.setUploadUrl",
+        "command": "itsc2214.setUploadUrl",
         "title": "ITSC2214: Set Project Upload URL"
       },
       {
-        "command": "itsc2214-extension.refreshAssignments",
+        "command": "itsc2214.refreshAssignments",
         "title": "ITSC2214: Refresh Assignments View"
       },
       {
-        "command": "itsc2214-extension.openView",
+        "command": "itsc2214.openView",
         "title": "ITSC2214: Open Assignments View"
       }
     ],
@@ -84,37 +84,37 @@
     "menus": {
       "extension/context": [
         {
-          "command": "itsc2214-extension.openView",
+          "command": "itsc2214.openView",
           "group": "navigation"
         }
       ],
       "view/title": [
         {
-          "command": "itsc2214-extension.refreshAssignments",
+          "command": "itsc2214.refreshAssignments",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "itsc2214-extension.downloadAssignment",
+          "command": "itsc2214.downloadAssignment",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@1"
         },
         {
-          "command": "itsc2214-extension.uploadProject",
+          "command": "itsc2214.uploadProject",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@2"
         },
         {
-          "command": "itsc2214-extension.reinstallJars",
+          "command": "itsc2214.reinstallJars",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation@3"
         }
       ],
       "explorer/context": [
         {
-          "command": "itsc2214-extension.reinstallJars",
+          "command": "itsc2214.reinstallJars",
           "group": "navigation"
         }
       ]
