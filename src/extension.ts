@@ -1,22 +1,24 @@
-import { window as vs_window, commands as vs_commands, ExtensionContext} from 'vscode';
-import { reinstallJars, areJarsPresent } from "./CreateProject";
-import { AssignmentProvider } from "./AssignmentProvider";
+import { commands, ExtensionContext, window, workspace } from 'vscode';
+import { createJavaProject, reinstallJars } from './createProject';
+import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './assignmentProvider';
 
-
-export const activate = (context: ExtensionContext) {
-    console.log('ITSC2214: Extension is now active!');
-
+export function activate(context: ExtensionContext) {
+    console.log("========Extension Activated========")
     const assignmentProvider = new AssignmentProvider();
-    vs_window.createTreeView('itsc2214ExplorerView', { treeDataProvider: assignmentProvider });
+    window.createTreeView('itsc2214ExplorerView', { treeDataProvider: assignmentProvider });
+
+    workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('itsc2214.downloadURL')) {
+            assignmentProvider.refresh();
+        }
+    });
 
     context.subscriptions.push(
-        vs_commands.registerCommand("itsc2214.createJavaProject", createJavaProject), 
-        vs_commands.registerCommand("itsc2214.reinstallJars", reinstallJars), 
-        vs_commands.registerCommand("itsc2214.downloadAssignment", downloadAssignment), 
-        vs_commands.registerCommand("itsc2214.setDownloadUrl", setDownloadUrl), 
-        vs_commands.registerCommand("itsc2214.setUploadUrl", setUploadUrlCommand), 
-        vs_commands.registerCommand("itsc2214.uploadProject", uploadProject), 
-        vs_commands.registerCommand("itsc2214.openView", openView),
-        vs_commands.registerCommand("itsc2214.refreshDownloads", assignmentProvider.refresh())
+        commands.registerCommand('itsc2214.createJavaProject', () => createJavaProject(context)),
+        commands.registerCommand('itsc2214.reinstallJars', () => reinstallJars(context)),
+        commands.registerCommand('itsc2214.setDownloadUrl', setDownloadUrl),
+        commands.registerCommand('itsc2214.downloadAssignment', downloadAssignment),
+        commands.registerCommand('itsc2214.refreshAssignments', () => assignmentProvider.refresh()),
+        commands.registerCommand('itsc2214.openView', openView)
     );
 }

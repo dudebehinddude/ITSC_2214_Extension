@@ -4,13 +4,13 @@
   "description": "An extension for UNCC ITSC2214",
   "version": "1.0.0",
   "engines": {
-    "vscode": "^0.100.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "*"
+    "onLanguage:java"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -21,11 +21,8 @@
       },
       {
         "command": "itsc2214.downloadAssignment",
-        "title": "ITSC2214: Download Assignment"
-      },
-      {
-        "command": "itsc2214.uploadProject",
-        "title": "ITSC2214: Upload Project"
+        "title": "ITSC2214: Download Assignment",
+        "icon": "$(cloud-download)"
       },
       {
         "command": "itsc2214.reinstallJars",
@@ -36,12 +33,9 @@
         "title": "ITSC2214: Set Assignment Download URL"
       },
       {
-        "command": "itsc2214.setUploadUrl",
-        "title": "ITSC2214: Set Project Upload URL"
-      },
-      {
         "command": "itsc2214.refreshAssignments",
-        "title": "ITSC2214: Refresh Assignments View"
+        "title": "Refresh",
+        "icon": "$(refresh)"
       },
       {
         "command": "itsc2214.openView",
@@ -55,11 +49,6 @@
           "type": "string",
           "default": "https://webpages.charlotte.edu/mperez19/itsc2214/2025Spring/snarf.xml",
           "description": "The URL to the Snarf XML file listing available assignments."
-        },
-        "itsc2214.signonURL": {
-          "type": "string",
-          "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa",
-          "description": "The URL for signing into Web-CAT."
         }
       }
     },
@@ -82,12 +71,6 @@
       ]
     },
     "menus": {
-      "extension/context": [
-        {
-          "command": "itsc2214.openView",
-          "group": "navigation"
-        }
-      ],
       "view/title": [
         {
           "command": "itsc2214.refreshAssignments",
@@ -98,23 +81,7 @@
       "view/item/context": [
         {
           "command": "itsc2214.downloadAssignment",
-          "when": "view == itsc2214ExplorerView",
-          "group": "navigation@1"
-        },
-        {
-          "command": "itsc2214.uploadProject",
-          "when": "view == itsc2214ExplorerView",
-          "group": "navigation@2"
-        },
-        {
-          "command": "itsc2214.reinstallJars",
-          "when": "view == itsc2214ExplorerView",
-          "group": "navigation@3"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "itsc2214.reinstallJars",
+          "when": "view == itsc2214ExplorerView && viewItem.contextValue == 'assignment'",
           "group": "navigation"
         }
       ]
@@ -125,20 +92,20 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
+    "lint": "eslint src --ext ts",
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.10",
-    "@types/vscode": "^1.100.0",
-    "@types/node": "^20.12.5",
-    "typescript": "^5.8.3"
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.12",
+    "@types/node-fetch": "^2.6.11",
+    "@types/unzip-stream": "^0.3.3",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "xml2js": "^0.6.2",
-    "node-fetch": "^2.6.1"
-  },
-  "optionalDependencies": {
-    "archiver": "^5.3.1"
+    "fast-xml-parser": "^4.4.0",
+    "node-fetch": "^2.7.0",
+    "unzip-stream": "^0.3.1"
   }
 }
