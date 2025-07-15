@@ -1,4 +1,4 @@
-# itsc2214-create-java-project README
+# itsc2214 README
 
 This is the ITSC2214 vscode extension for students at UNC Charlotte.
 
@@ -17,30 +17,28 @@ This extension contributes the following settings:
 * itsc2214.downloadURL: The URL for downloading projects to the IDE.
 * itsc2214.signonURL: The URL for signing into WebCat
 
-
 This extension contributes the following commands:
-* `itsc2214-create-java-project.createJavaProject`: Create a new pure Java project referencing local JARS.
-* `itsc2214-create-java-project.reinstallJars`: Reinstalls the 2214 JARS to the user's current itsc2214/JARS folder, or a custom.
+* `itsc2214.createJavaProject`: Create a new pure Java project referencing local JARS.
+* `itsc2214.reinstallJars`: Reinstalls the 2214 JARS to the user's current itsc2214/JARS directory, or a custom directory.
+* 'itsc2214.refreshAssignments': Fetchs the assignment list from the downloadURL
+* 'itsc2214.openView': Builds and opens the assignment fileview.
+* 'itsc2214.downloadAssignment': Downloads and unpacks the zip project.
 
 
 ## Release Notes
 
 ### 1.0.0
 
-Initial release of itsc2214-java-create-project
-\nAdded proper filepath checking features.
-Added project creation with JAR reference.
-Planning to add webcat submitter without snarfer.
+Initial release of itsc2214-java-create-project:
+* Working JAR environment
+* Custom ITSC2214 folder
+* Project Upload/Download
+* Create Java Project
+
+### 1.0.1
+* Removed upload project
+* Simplified dependencies
 
 
 
 ---
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-
-
