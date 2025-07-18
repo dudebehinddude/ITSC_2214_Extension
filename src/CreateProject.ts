@@ -12,38 +12,72 @@ function areJarsPresent(itsc2214Dir: string): boolean {
     return jarFiles.length > 0;
 }
 
-async function copyJarsToDir(itsc2214Dir: string, context: vscode.ExtensionContext) {
+async function copyJarsToDir(targetBaseDir: string, destinationFolderName: string, context: vscode.ExtensionContext): Promise<{ success: boolean; jarsCopied: number }> {
     const extensionJarsPath = path.join(context.extensionPath, 'src', 'JARS');
-    const projectJarsPath = path.join(itsc2214Dir, 'JARS');
+    const targetJarsPath = path.join(targetBaseDir, destinationFolderName);
+    let jarsCopiedCount = 0;
 
-    if (!fs.existsSync(extensionJarsPath)) {
-        return { success: true, jarsCopied: 0 };
-    }
-    if (!fs.existsSync(projectJarsPath)) {
-        fs.mkdirSync(projectJarsPath, { recursive: true });
+    fs.mkdirSync(targetJarsPath, { recursive: true });
+
+    const jarFiles = fs.readdirSync(extensionJarsPath);
+
+    for (const file of jarFiles) {
+        if (file.endsWith('.jar')) {
+            const sourcePath = path.join(extensionJarsPath, file);
+            const destinationPath = path.join(targetJarsPath, file);
+            fs.copyFileSync(sourcePath, destinationPath);
+            jarsCopiedCount++;
+        }
     }
 
-    const jarFiles = fs.readdirSync(extensionJarsPath).filter(file => file.endsWith('.jar'));
-    for (const jarFile of jarFiles) {
-        const sourcePath = path.join(extensionJarsPath, jarFile);
-        const destPath = path.join(projectJarsPath, jarFile);
-        fs.copyFileSync(sourcePath, destPath);
-    }
-    return { success: true, jarsCopied: jarFiles.length };
+    return { success: true, jarsCopied: jarsCopiedCount };
 }
 
 export async function reinstallJars(context: vscode.ExtensionContext) {
+    let totalJarsReinstalled = 0;
+    let anyOperationPerformed = false;
+
+    // Reinstall JARs for the globally tracked ITSC2214 project (into 'JARS' folder)
     const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
-    if (!itsc2214Dir) {
-        vscode.window.showErrorMessage('ITSC2214 project directory not set. Please create a project first.');
-        return;
+    if (itsc2214Dir) {
+        anyOperationPerformed = true;
+        const result = await copyJarsToDir(itsc2214Dir, 'JARS', context);
+        if (result.success) {
+            totalJarsReinstalled += result.jarsCopied;
+            if (result.jarsCopied > 0) {
+                vscode.window.showInformationMessage(`ITSC2214 project: ${result.jarsCopied} JARs reinstalled into 'JARS' folder.`);
+            } else {
+                vscode.window.showWarningMessage(`ITSC2214 project: No JARs found in extension to reinstall into 'JARS' folder.`);
+            }
+        }
+    } else {
+        vscode.window.showWarningMessage('ITSC2214 project directory not set. Skipping JAR reinstallation for it.');
     }
 
-    const result = await copyJarsToDir(itsc2214Dir, context);
-    if (result.success && result.jarsCopied > 0) {
-        vscode.window.showInformationMessage(`${result.jarsCopied} JARs reinstalled successfully.`);
-    } else if (result.success) {
-        vscode.window.showWarningMessage('No JARs found in the extension to reinstall.');
+    // Reinstall JARs for the currently opened workspace folder (into 'lib' folder)
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders.length > 0) {
+        const currentProjectDir = workspaceFolders[0].uri.fsPath;
+        anyOperationPerformed = true;
+        const result = await copyJarsToDir(currentProjectDir, 'lib', context);
+        if (result.success) {
+            totalJarsReinstalled += result.jarsCopied;
+            if (result.jarsCopied > 0) {
+                vscode.window.showInformationMessage(`Current workspace: ${result.jarsCopied} JARs reinstalled into 'lib' folder.`);
+            } else {
+                vscode.window.showWarningMessage(`Current workspace: No JARs found in extension to reinstall into 'lib' folder.`);
+            }
+        }
+    } else {
+        vscode.window.showWarningMessage('No workspace folder open. Skipping JAR reinstallation for current project.');
+    }
+
+    if (!anyOperationPerformed) {
+        vscode.window.showInformationMessage('No eligible projects found for JAR reinstallation.');
+    } else if (totalJarsReinstalled === 0) {
+        vscode.window.showInformationMessage('Reinstall JARs completed, but no JARs were copied in any location.');
+    } else {
+        vscode.window.showInformationMessage(`Total ${totalJarsReinstalled} JARs reinstalled across eligible projects.`);
     }
 }
 
@@ -84,7 +118,7 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
         fs.mkdirSync(itsc2214Dir, { recursive: true });
         await context.globalState.update('itsc2214Dir', itsc2214Dir);
 
-        const result = await copyJarsToDir(itsc2214Dir, context);
+        const result = await copyJarsToDir(itsc2214Dir, 'JARS', context);
         let message = `✅ ITSC2214 folder created at ${itsc2214Dir}.`;
         if (result.jarsCopied > 0) {
             message += ` ${result.jarsCopied} JARs were installed.`;
@@ -133,7 +167,9 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
     }
 
     const mainJavaContent = 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, ITSC2214!");\n    }\n}';
+    const testJavaContent = 'import org.junit.*;'
     fs.writeFileSync(path.join(srcDir, 'Main.java'), mainJavaContent);
+    fs.writeFileSync(path.join(srcDir, 'MainTest.java'), testJavaContent);
 
     const settings = { 'java.project.referencedLibraries': [ 'lib/**/*.jar' ] };
     const vscodeDir = path.join(projectDir, '.vscode');

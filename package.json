@@ -2,7 +2,8 @@
   "name": "itsc2214",
   "displayName": "ITSC 2214",
   "description": "An extension for UNCC ITSC2214",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "publisher": "MichaelSpitz",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -10,9 +11,19 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:java"
+    "onLanguage:Java"
   ],
   "main": "./out/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NotMike63/CreateJavaProject"
+  },
+  "homepage": "https://github.com/NotMike63/CreateJavaProject#readme",
+  "bugs": {
+    "url": "https://github.com/NotMike63/CreateJavaProject/issues"
+  },
+  "icon": "icon.png",
+  "license": "MIT",
   "contributes": {
     "commands": [
       {
@@ -57,7 +68,7 @@
         {
           "id": "itsc2214Explorer",
           "title": "ITSC2214",
-          "icon": "src/icon.png"
+          "icon": "icon.png"
         }
       ]
     },
@@ -76,6 +87,11 @@
           "command": "itsc2214.refreshAssignments",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation"
+        },
+        {
+          "command": "itsc2214.downloadAssignment",
+          "when": "view == itsc2214ExplorerView",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -98,9 +114,9 @@
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.12.12",
-    "@types/node-fetch": "^2.6.11",
     "@types/unzip-stream": "^0.3.3",
     "@types/vscode": "^1.85.0",
+    "@types/node-fetch": "^2.6.11",
     "typescript": "^5.4.5"
   },
   "dependencies": {

@@ -1,36 +1,22 @@
-import {
-    commands,
-    Uri,
-    window,
-    workspace,
-    TreeDataProvider,
-    EventEmitter,
-    Event,
-    TreeItem,
-    TreeItemCollapsibleState,
-    ThemeIcon
-} from 'vscode';
-import { XMLParser } from 'fast-xml-parser';
+import * as vscode from 'vscode'; // Changed to import the entire vscode namespace
 import * as fs from 'fs';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as unzip from 'unzip-stream';
 
 type AssignmentItemData = {
-    '@_category': string;
-    '@_name': string;
-    '@_version': string;
+    label: string;
     description: string;
-    entry: { '@_url': string };
+    url: string;
 };
 
-class AssignmentTreeItem extends TreeItem {
+class AssignmentTreeItem extends vscode.TreeItem { // Use vscode.TreeItem
     children?: AssignmentTreeItem[];
     itemData?: AssignmentItemData;
 
     constructor(
         label: string,
-        collapsibleState: TreeItemCollapsibleState,
+        collapsibleState: vscode.TreeItemCollapsibleState, // Use vscode.TreeItemCollapsibleState
         iconId?: string,
         children?: AssignmentTreeItem[],
         itemData?: AssignmentItemData
@@ -39,27 +25,25 @@ class AssignmentTreeItem extends TreeItem {
         this.children = children;
         this.itemData = itemData;
         if (iconId) {
-            this.iconPath = new ThemeIcon(iconId);
+            this.iconPath = new vscode.ThemeIcon(iconId); // Use vscode.ThemeIcon
         }
         if (itemData) {
             this.contextValue = 'assignment';
-            this.description = itemData['@_version'];
+            this.description = itemData.description;
             this.tooltip = itemData.description;
         }
     }
 }
 
-const parser = new XMLParser({ ignoreAttributes: false });
-
-export class AssignmentProvider implements TreeDataProvider<AssignmentTreeItem> {
-    private _onDidChangeTreeData: EventEmitter<AssignmentTreeItem | undefined | null | void> = new EventEmitter();
-    readonly onDidChangeTreeData: Event<AssignmentTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+export class AssignmentProvider implements vscode.TreeDataProvider<AssignmentTreeItem> { // Use vscode.TreeDataProvider
+    private _onDidChangeTreeData: vscode.EventEmitter<AssignmentTreeItem | undefined | null | void> = new vscode.EventEmitter(); // Use vscode.EventEmitter
+    readonly onDidChangeTreeData: vscode.Event<AssignmentTreeItem | undefined | null | void> = this._onDidChangeTreeData.event; // Use vscode.Event
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: AssignmentTreeItem): TreeItem {
+    getTreeItem(element: AssignmentTreeItem): vscode.TreeItem { // Use vscode.TreeItem
         return element;
     }
 
@@ -73,68 +57,60 @@ export class AssignmentProvider implements TreeDataProvider<AssignmentTreeItem> 
     private async fetchSite(url: string): Promise<{ label: string; packages: AssignmentItemData[] }> {
         const resp = await fetch(url);
         if (!resp.ok) {
-            window.showErrorMessage(`Failed to fetch assignments from ${url}. Check the URL and your internet connection.`);
+            vscode.window.showErrorMessage(`Failed to fetch assignments from ${url}. Check the URL and your internet connection.`); // Use vscode.window
             return { label: 'Error', packages: [] };
         }
 
-        const content = await resp.text();
-        const xml = parser.parse(content);
-        const site = xml.snarf_site;
-
-        let packages = [];
-        if (site && site.package) {
-            packages = Array.isArray(site.package) ? site.package : [site.package];
+        const content = await resp.json();
+        
+        if (!Array.isArray(content)) {
+            vscode.window.showErrorMessage('Invalid assignment data format: Expected an array of assignments.'); // Use vscode.window
+            return { label: 'Error', packages: [] };
         }
 
         return {
-            label: site ? site['@_name'] : 'Unnamed Site',
-            packages: packages,
+            label: 'Available Assignments',
+            packages: content as AssignmentItemData[],
         };
     }
 
     private async fetchData(): Promise<AssignmentTreeItem[]> {
-        const config = workspace.getConfiguration('itsc2214');
+        const config = vscode.workspace.getConfiguration('itsc2214'); // Use vscode.workspace
         const downloadURL = config.get<string>('downloadURL');
 
         if (!downloadURL) {
-            window.showWarningMessage('Assignment download URL is not configured.');
+            vscode.window.showWarningMessage('Assignment download URL is not configured.'); // Use vscode.window
             return [];
         }
 
         const { label, packages } = await this.fetchSite(downloadURL);
 
-        const itemsByCategory = packages.reduce<{ [key: string]: AssignmentTreeItem[] }>((acc, pkg) => {
-            const category = pkg['@_category'];
-            if (!acc[category]) {
-                acc[category] = [];
-            }
-            acc[category].push(new AssignmentTreeItem(pkg['@_name'], TreeItemCollapsibleState.None, 'package', undefined, pkg));
-            return acc;
-        }, {});
+        const assignmentItems = packages.map(pkg =>
+            new AssignmentTreeItem(pkg.label, vscode.TreeItemCollapsibleState.None, 'package', undefined, pkg) // Use vscode.TreeItemCollapsibleState
+        );
 
-        const categoryItems = Object.entries(itemsByCategory).map(([categoryLabel, children]) => {
-            children.sort((a, b) => (a.label! as string).localeCompare(b.label! as string));
-            return new AssignmentTreeItem(categoryLabel, TreeItemCollapsibleState.Collapsed, 'folder', children);
-        });
+        assignmentItems.sort((a, b) => (a.label! as string).localeCompare(b.label! as string));
 
-        categoryItems.sort((a, b) => (a.label! as string).localeCompare(b.label! as string));
-
-        const rootItem = new AssignmentTreeItem(label, TreeItemCollapsibleState.Expanded, 'project', categoryItems);
+        const rootItem = new AssignmentTreeItem(label, vscode.TreeItemCollapsibleState.Expanded, 'project', assignmentItems); // Use vscode.TreeItemCollapsibleState
         return [rootItem];
     }
 }
 
-async function downloadAndUnzip(itemData: AssignmentItemData): Promise<string | undefined> {
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-        window.showInformationMessage('Please open a folder to download the assignment into.');
+async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.ExtensionContext): Promise<string | undefined> {
+    const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
+
+    let targetDir: string;
+    if (itsc2214Dir && fs.existsSync(itsc2214Dir)) {
+        targetDir = itsc2214Dir;
+    } else {
+        vscode.window.showErrorMessage('ITSC2214 project directory not set or does not exist. Please create a project first using "ITSC2214: Create Java Project".'); // Use vscode.window
         return undefined;
     }
-    const targetDir = workspaceFolders[0].uri.fsPath;
-    const unzipPath = path.join(targetDir, itemData['@_name']);
+    
+    const unzipPath = path.join(targetDir, itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
 
     if (fs.existsSync(unzipPath)) {
-        const choice = await window.showWarningMessage(`Directory "${itemData['@_name']}" already exists. Overwrite?`, "Yes", "No");
+        const choice = await vscode.window.showWarningMessage(`Directory "${itemData.label}" already exists. Overwrite?`, "Yes", "No"); // Use vscode.window
         if (choice !== 'Yes') {
             return undefined;
         }
@@ -142,9 +118,9 @@ async function downloadAndUnzip(itemData: AssignmentItemData): Promise<string | 
         fs.mkdirSync(unzipPath, { recursive: true });
     }
 
-    const resp = await fetch(itemData.entry['@_url']);
+    const resp = await fetch(itemData.url);
     if (!resp.ok) {
-        window.showErrorMessage(`Failed to download assignment: ${resp.statusText}`);
+        vscode.window.showErrorMessage(`Failed to download assignment: ${resp.statusText}`); // Use vscode.window
         return undefined;
     }
 
@@ -156,53 +132,48 @@ async function downloadAndUnzip(itemData: AssignmentItemData): Promise<string | 
     });
 }
 
-export async function downloadAssignment(item: AssignmentTreeItem) {
+export async function downloadAssignment(item: AssignmentTreeItem, context: vscode.ExtensionContext) {
     if (!item || !item.itemData) {
         return;
     }
     const itemData = item.itemData;
 
-    try {
-        const unzipPath = await window.withProgress(
-            {
-                location: { viewId: 'itsc2214ExplorerView' },
-                title: `Downloading ${itemData['@_name']}...`,
-                cancellable: false
-            },
-            () => downloadAndUnzip(itemData)
-        );
+    const unzipPath = await vscode.window.withProgress( // Use vscode.window
+        {
+            location: { viewId: 'itsc2214ExplorerView' },
+            title: `Downloading ${itemData.label}...`,
+            cancellable: false
+        },
+        () => downloadAndUnzip(itemData, context)
+    );
 
-        if (!unzipPath) {
-            return;
-        }
+    if (!unzipPath) {
+        return;
+    }
 
-        const selection = await window.showInformationMessage(`Successfully downloaded "${itemData['@_name']}".`, 'Open Folder');
-        if (selection === 'Open Folder') {
-            await commands.executeCommand('vscode.openFolder', Uri.file(unzipPath), { forceNewWindow: false });
-        }
-    } catch (err: any) {
-        window.showErrorMessage(`An error occurred: ${err.message}`);
-        console.error(err);
+    const selection = await vscode.window.showInformationMessage(`Successfully downloaded "${itemData.label}".`, 'Open Folder'); // Use vscode.window
+    if (selection === 'Open Folder') {
+        await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(unzipPath), { forceNewWindow: true }); // Use vscode.commands and vscode.Uri
     }
 }
 
 export async function setDownloadUrl() {
-    const config = workspace.getConfiguration('itsc2214');
+    const config = vscode.workspace.getConfiguration('itsc2214'); // Use vscode.workspace
     const currentUrl = config.get<string>('downloadURL') || '';
 
-    const newUrl = await window.showInputBox({
-        prompt: 'Enter the assignment download URL (snarf.xml)',
+    const newUrl = await vscode.window.showInputBox({ // Use vscode.window
+        prompt: 'Enter the assignment download URL (snarf.json)',
         value: currentUrl,
         validateInput: value => (!value || value.trim().length === 0) ? 'URL cannot be empty.' : null
     });
 
     if (newUrl) {
         await config.update('downloadURL', newUrl, true);
-        window.showInformationMessage('Download URL updated.');
-        commands.executeCommand('itsc2214.refreshAssignments');
+        vscode.window.showInformationMessage('Download URL updated.'); // Use vscode.window
+        vscode.commands.executeCommand('itsc2214.refreshAssignments'); // Use vscode.commands
     }
 }
 
 export function openView() {
-    commands.executeCommand('workbench.view.extension.itsc2214Explorer');
+    vscode.commands.executeCommand('workbench.view.extension.itsc2214Explorer'); // Use vscode.commands
 }
