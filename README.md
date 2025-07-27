@@ -1,44 +1,47 @@
-# itsc2214 README
+# ITSC 2214 Project Creator
 
-This is the ITSC2214 vscode extension for students at UNC Charlotte.
+A Visual Studio Code extension for creating ITSC 2214 projects.
 
 ## Features
-* Custom ITSC2214 JAR environment.
-* Custom ITSC2214 Java Project Creation.
 
+- **Java Project Creation**: Quickly scaffolds a new Java project with the necessary directory structure and build configurations.
+- **Assignment Downloader**: Downloads and sets up assignments from a remote server. Supports XML-based assignment lists.
+- **JAR Management**: Automatically includes required JAR files for course projects.
 
-## Requirements
+## Installation
 
-Currently none.
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/your-username/your-repo-name.git
+    ```
+2.  Navigate to the project directory:
+    ```bash
+    cd your-repo-name
+    ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+4.  Open the project in Visual Studio Code.
+5.  Press `F5` to run the extension in a new Extension Development Host window.
 
-## Extension Settings
+## Usage
 
-This extension contributes the following settings:
-* itsc2214.downloadURL: The URL for downloading projects to the IDE.
-* itsc2214.signonURL: The URL for signing into WebCat
+1.  Open the Command Palette (`Cmd+Shift+P` on macOS, `Ctrl+Shift+P` on Windows).
+2.  Run the "ITSC2214: Create Java Project" command.
+3.  Follow the prompts to specify the project name and location.
+4.  Use the "ITSC2214: Assignments" view in the Explorer to browse and download assignments.
 
-This extension contributes the following commands:
-* `itsc2214.createJavaProject`: Create a new pure Java project referencing local JARS.
-* `itsc2214.reinstallJars`: Reinstalls the 2214 JARS to the user's current itsc2214/JARS directory, or a custom directory.
-* 'itsc2214.refreshAssignments': Fetchs the assignment list from the downloadURL
-* 'itsc2214.openView': Builds and opens the assignment fileview.
-* 'itsc2214.downloadAssignment': Downloads and unpacks the zip project.
+## Dependencies
 
+-   `node-fetch`: For making HTTP requests to download assignments.
+-   `unzip-stream`: For unzipping downloaded assignment files.
+-   `xml2js`: For parsing XML-based assignment lists.
 
-## Release Notes
+## Contributing
 
-### 1.0.0
+Contributions are welcome! Please open an issue or submit a pull request with any improvements.
 
-Initial release of itsc2214-java-create-project:
-* Working JAR environment
-* Custom ITSC2214 folder
-* Project Upload/Download
-* Create Java Project
+## License
 
-### 1.0.1
-* Removed upload project
-* Simplified dependencies
-
-
-
----
+This project is licensed under the MIT License.
