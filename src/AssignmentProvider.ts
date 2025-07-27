@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as unzip from 'unzip-stream';
 import { Parser, parseStringPromise } from 'xml2js';
+import { copyJarsToDir } from './createProject';
 
 type AssignmentItemData = {
     label: string;
@@ -161,6 +162,8 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
                 }
 
                 await vscode.workspace.fs.delete(tempDirUri, { recursive: true });
+
+                await copyJarsToDir(projectUri, 'lib', context);
                 
                 resolve(projectUri);
             } catch (e) {

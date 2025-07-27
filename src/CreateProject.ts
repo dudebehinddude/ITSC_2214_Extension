@@ -13,7 +13,7 @@ async function areJarsPresent(itsc2214DirUri: vscode.Uri): Promise<boolean> {
     }
 }
 
-async function copyJarsToDir(targetBaseUri: vscode.Uri, destinationFolderName: string, context: vscode.ExtensionContext): Promise<{ success: boolean; jarsCopied: number }> {
+export async function copyJarsToDir(targetBaseUri: vscode.Uri, destinationFolderName: string, context: vscode.ExtensionContext): Promise<{ success: boolean; jarsCopied: number }> {
     const extensionJarsUri = vscode.Uri.joinPath(context.extensionUri, 'src', 'JARS');
     const targetJarsUri = vscode.Uri.joinPath(targetBaseUri, destinationFolderName);
     let jarsCopiedCount = 0;
@@ -74,6 +74,15 @@ export async function reinstallJars(context: vscode.ExtensionContext) {
 
 export async function createJavaProject(context: vscode.ExtensionContext) {
     let itsc2214Dir: string | undefined = context.globalState.get('itsc2214Dir');
+
+    if (itsc2214Dir) {
+        try {
+            await vscode.workspace.fs.stat(vscode.Uri.file(itsc2214Dir));
+        } catch {
+            await context.globalState.update('itsc2214Dir', undefined);
+            itsc2214Dir = undefined;
+        }
+    }
 
     if (!itsc2214Dir) {
         const locationChoice = await vscode.window.showQuickPick([
