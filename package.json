@@ -29,7 +29,7 @@
       "explorer": [
         {
           "id": "itsc2214ExplorerView",
-          "name": "ITSC2214: Assignments",
+          "name": "Assignments",
           "type": "tree"
         }
       ]
@@ -37,17 +37,17 @@
     "commands": [
       {
         "command": "itsc2214.createJavaProject",
-        "title": "ITSC2214: Create Java Project",
+        "title": "Create Java Project",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.reinstallJars",
-        "title": "ITSC2214: Reinstall Jars",
+        "title": "Reinstall Jars",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.refreshAssignments",
-        "title": "ITSC2214: Refresh Assignments",
+        "title": "Refresh Assignments",
         "icon": "$(sync)",
         "category": "ITSC2214"
       },
@@ -58,7 +58,7 @@
       },
       {
         "command": "itsc2214.setDownloadUrl",
-        "title": "ITSC2214: Set Download URL",
+        "title": "Set Download URL",
         "icon": "$(gear)",
         "category": "ITSC2214"
       }
