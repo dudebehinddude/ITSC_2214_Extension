@@ -1,6 +1,6 @@
-# ITSC 2214 Project Creator
+# ITSC 2214 Extension
 
-A Visual Studio Code extension for creating ITSC 2214 projects.
+A Visual Studio Code extension for creating ITSC 2214 projects, setting up JAR dependencies, and creating a class directory.
 
 ## Features
 
