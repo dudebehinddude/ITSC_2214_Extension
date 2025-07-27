@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as unzip from 'unzip-stream';
+import { Parser, parseStringPromise } from 'xml2js';
 
 type AssignmentItemData = {
     label: string;
@@ -61,17 +62,20 @@ export class AssignmentProvider implements vscode.TreeDataProvider<AssignmentTre
             return { label: 'Error', packages: [] };
         }
 
-        const content = await resp.json();
-        
-        if (!Array.isArray(content)) {
-            vscode.window.showErrorMessage('Invalid assignment data format: Expected an array of assignments.'); // Use vscode.window
+        const content = await resp.text(); // Get response as text
+        try {
+            const result = await parseStringPromise(content);
+            const siteName = result.snarf_site.$.name;
+            const packages = result.snarf_site.package.map((p: any) => ({
+                label: p.$.name,
+                description: p.description[0],
+                url: p.entry[0].$.url,
+            }));
+            return { label: siteName, packages };
+        } catch (error) {
+            vscode.window.showErrorMessage('Failed to parse assignment data.');
             return { label: 'Error', packages: [] };
         }
-
-        return {
-            label: 'Available Assignments',
-            packages: content as AssignmentItemData[],
-        };
     }
 
     private async fetchData(): Promise<AssignmentTreeItem[]> {
