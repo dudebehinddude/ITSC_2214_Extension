@@ -142,7 +142,7 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
         validateInput: value => {
             if (!value || value.trim().length === 0) { return 'Project name cannot be empty.'; }
             if (/[/\\:*?"<>|]/.test(value)) { return 'Project name contains invalid characters.'; }
-            if (fs.existsSync(path.join(itsc2214Dir as string, value))) { return 'A project with this name already exists.'; }
+            if (fs.existsSync(path.join(itsc2214Dir as string, 'projects', value))) { return 'A project with this name already exists.'; }
             return null;
         }
     });
@@ -152,11 +152,24 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
         return;
     }
 
-    const projectDir = path.join(itsc2214Dir, projectName);
-    const srcDir = path.join(projectDir, 'src');
-    const libDir = path.join(projectDir, 'lib');
+    const projectsDir = path.join(itsc2214Dir, 'projects');
+    if (!fs.existsSync(projectsDir)) {
+        fs.mkdirSync(projectsDir, { recursive: true });
+    }
 
-    [projectDir, srcDir, libDir].forEach(dir => fs.mkdirSync(dir, { recursive: true }));
+    const projectPath = path.join(projectsDir, projectName);
+
+    if (fs.existsSync(projectPath)) {
+        vscode.window.showErrorMessage('A project with this name already exists in the selected directory.');
+        return;
+    }
+
+    const srcDir = path.join(projectPath, 'src');
+    const libDir = path.join(projectPath, 'lib');
+
+    [projectPath, srcDir, libDir].forEach(dir => fs.mkdirSync(dir, { recursive: true }));
+
+    fs.writeFileSync(path.join(projectsDir, '.gitkeep'), '');
 
     const sourceJarsPath = path.join(itsc2214Dir, 'JARS');
     if (fs.existsSync(sourceJarsPath)) {
@@ -167,16 +180,15 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
     }
 
     const mainJavaContent = 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, ITSC2214!");\n    }\n}';
-    const testJavaContent = 'import org.junit.*;'
+    const testJavaContent = 'import org.junit.*;';
     fs.writeFileSync(path.join(srcDir, 'Main.java'), mainJavaContent);
     fs.writeFileSync(path.join(srcDir, 'MainTest.java'), testJavaContent);
 
     const settings = { 'java.project.referencedLibraries': [ 'lib/**/*.jar' ] };
-    const vscodeDir = path.join(projectDir, '.vscode');
+    const vscodeDir = path.join(projectPath, '.vscode');
     fs.mkdirSync(vscodeDir, { recursive: true });
     fs.writeFileSync(path.join(vscodeDir, 'settings.json'), JSON.stringify(settings, null, 4));
 
-    vscode.window.showInformationMessage(`Successfully created project: ${projectName}`);
-    const projectUri = vscode.Uri.file(projectDir);
-    await vscode.commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
+    vscode.window.showInformationMessage(`Successfully created project ${projectName}. It will be opened in a new window.`);
+    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectPath), { forceNewWindow: true });
 }

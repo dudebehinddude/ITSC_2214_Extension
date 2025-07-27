@@ -10,9 +10,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onLanguage:Java"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "repository": {
     "type": "git",
@@ -25,32 +23,44 @@
   "icon": "icon.png",
   "license": "MIT",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "itsc2214ExplorerView",
+          "name": "ITSC2214: Assignments",
+          "type": "tree"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "itsc2214.createJavaProject",
         "title": "ITSC2214: Create Java Project"
       },
       {
-        "command": "itsc2214.downloadAssignment",
-        "title": "ITSC2214: Download Assignment",
-        "icon": "$(cloud-download)"
-      },
-      {
         "command": "itsc2214.reinstallJars",
-        "title": "ITSC2214: Reinstall JARs"
-      },
-      {
-        "command": "itsc2214.setDownloadUrl",
-        "title": "ITSC2214: Set Assignment Download URL"
+        "title": "ITSC2214: Reinstall Jars"
       },
       {
         "command": "itsc2214.refreshAssignments",
         "title": "Refresh",
-        "icon": "$(refresh)"
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       },
       {
-        "command": "itsc2214.openView",
-        "title": "ITSC2214: Open Assignments View"
+        "command": "itsc2214.downloadAssignment",
+        "title": "Download Assignment",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "itsc2214.setDownloadUrl",
+        "title": "Set Download URL",
+        "icon": {
+          "light": "resources/light/cloud-upload.svg",
+          "dark": "resources/dark/cloud-upload.svg"
+        }
       }
     ],
     "configuration": {
@@ -89,16 +99,16 @@
           "group": "navigation"
         },
         {
-          "command": "itsc2214.downloadAssignment",
+          "command": "itsc2214.setDownloadUrl",
           "when": "view == itsc2214ExplorerView",
-          "group": "navigation@1"
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "itsc2214.downloadAssignment",
-          "when": "view == itsc2214ExplorerView && viewItem.contextValue == 'assignment'",
-          "group": "navigation"
+          "when": "view == itsc2214ExplorerView && viewItem == assignment",
+          "group": "inline"
         }
       ]
     }
