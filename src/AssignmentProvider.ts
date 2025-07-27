@@ -101,31 +101,30 @@ export class AssignmentProvider implements vscode.TreeDataProvider<AssignmentTre
     }
 }
 
-async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.ExtensionContext): Promise<string | undefined> {
+async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.ExtensionContext): Promise<vscode.Uri | undefined> {
     const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
-
-    let targetDir: string;
-    if (itsc2214Dir && fs.existsSync(itsc2214Dir)) {
-        targetDir = path.join(itsc2214Dir, 'projects');
-        if (!fs.existsSync(targetDir)) {
-            fs.mkdirSync(targetDir, { recursive: true });
-        }
-    } else {
-        vscode.window.showErrorMessage('ITSC2214 project directory not set or does not exist. Please create a project first using "ITSC2214: Create Java Project".');
+    if (!itsc2214Dir) {
+        vscode.window.showErrorMessage('ITSC2214 project directory not set. Please create a project first.');
         return undefined;
     }
-    
-    const unzipPath = path.join(targetDir, itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
 
-    if (fs.existsSync(unzipPath)) {
+    const projectsDirUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), 'projects');
+    await vscode.workspace.fs.createDirectory(projectsDirUri);
+
+    const projectUri = vscode.Uri.joinPath(projectsDirUri, itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
+
+    try {
+        await vscode.workspace.fs.stat(projectUri);
         const choice = await vscode.window.showWarningMessage(`Directory "${itemData.label}" already exists. Overwrite?`, "Yes", "No");
         if (choice !== 'Yes') {
             return undefined;
         }
-        fs.rmSync(unzipPath, { recursive: true, force: true });
+        await vscode.workspace.fs.delete(projectUri, { recursive: true });
+    } catch (error) {
+        // Directory does not exist, which is fine
     }
-    
-    fs.mkdirSync(unzipPath, { recursive: true });
+
+    await vscode.workspace.fs.createDirectory(projectUri);
 
     const resp = await fetch(itemData.url);
     if (!resp.ok) {
@@ -133,42 +132,37 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
         return undefined;
     }
 
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'itsc2214-unzip-'));
+    const tempDirUri = vscode.Uri.file(fs.mkdtempSync(path.join(os.tmpdir(), 'itsc2214-unzip-')));
 
-    return new Promise((resolve, reject) => {
-        const extractStream = unzip.Extract({ path: tempDir });
+    return new Promise<vscode.Uri | undefined>((resolve, reject) => {
+        const extractStream = unzip.Extract({ path: tempDirUri.fsPath });
         resp.body.pipe(extractStream);
         extractStream.on('error', reject);
-        extractStream.on('finish', () => {
+        extractStream.on('finish', async () => {
             try {
-                const topLevelFiles = fs.readdirSync(tempDir);
-                const macosxPath = path.join(tempDir, '__MACOSX');
-                if (fs.existsSync(macosxPath)) {
-                    fs.rmSync(macosxPath, { recursive: true, force: true });
+                const macosxUri = vscode.Uri.joinPath(tempDirUri, '__MACOSX');
+                try {
+                    await vscode.workspace.fs.delete(macosxUri, { recursive: true });
+                } catch (e) {
+                    // Ignore if not present
                 }
 
-                topLevelFiles.forEach(file => {
-                    if (file.startsWith('._')) {
-                        fs.rmSync(path.join(tempDir, file), { recursive: true, force: true });
-                    }
-                });
-
-                let projectRoot = tempDir;
-                const remainingFiles = fs.readdirSync(tempDir);
-                if (remainingFiles.length === 1 && fs.statSync(path.join(tempDir, remainingFiles[0])).isDirectory()) {
-                    projectRoot = path.join(tempDir, remainingFiles[0]);
+                let projectRootUri = tempDirUri;
+                const entries = await vscode.workspace.fs.readDirectory(tempDirUri);
+                if (entries.length === 1 && entries[0][1] === vscode.FileType.Directory) {
+                    projectRootUri = vscode.Uri.joinPath(tempDirUri, entries[0][0]);
                 }
 
-                const projectFiles = fs.readdirSync(projectRoot);
-                for (const file of projectFiles) {
-                    const oldPath = path.join(projectRoot, file);
-                    const newPath = path.join(unzipPath, file);
-                    fs.renameSync(oldPath, newPath);
+                const projectFiles = await vscode.workspace.fs.readDirectory(projectRootUri);
+                for (const [fileName] of projectFiles) {
+                    const oldPath = vscode.Uri.joinPath(projectRootUri, fileName);
+                    const newPath = vscode.Uri.joinPath(projectUri, fileName);
+                    await vscode.workspace.fs.rename(oldPath, newPath);
                 }
 
-                fs.rmSync(tempDir, { recursive: true, force: true });
+                await vscode.workspace.fs.delete(tempDirUri, { recursive: true });
                 
-                resolve(unzipPath);
+                resolve(projectUri);
             } catch (e) {
                 reject(e);
             }
@@ -182,7 +176,7 @@ export async function downloadAssignment(item: AssignmentTreeItem, context: vsco
     }
     const itemData = item.itemData;
 
-    const unzipPath = await vscode.window.withProgress(
+    const projectUri = await vscode.window.withProgress(
         {
             location: { viewId: 'itsc2214ExplorerView' },
             title: `Downloading ${itemData.label}...`,
@@ -191,11 +185,9 @@ export async function downloadAssignment(item: AssignmentTreeItem, context: vsco
         () => downloadAndUnzip(itemData, context)
     );
 
-    if (!unzipPath) {
-        return;
+    if (projectUri) {
+        await vscode.commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
     }
-
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(unzipPath), { forceNewWindow: true });
 }
 
 export async function setDownloadUrl() {
