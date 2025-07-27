@@ -8,22 +8,6 @@ A Visual Studio Code extension for creating ITSC 2214 projects.
 - **Assignment Downloader**: Downloads and sets up assignments from a remote server. Supports XML-based assignment lists.
 - **JAR Management**: Automatically includes required JAR files for course projects.
 
-## Installation
-
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    ```
-2.  Navigate to the project directory:
-    ```bash
-    cd your-repo-name
-    ```
-3.  Install dependencies:
-    ```bash
-    npm install
-    ```
-4.  Open the project in Visual Studio Code.
-5.  Press `F5` to run the extension in a new Extension Development Host window.
 
 ## Usage
 
@@ -40,7 +24,7 @@ A Visual Studio Code extension for creating ITSC 2214 projects.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request with any improvements.
+Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
