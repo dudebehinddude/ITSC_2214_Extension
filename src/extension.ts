@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, window, workspace } from 'vscode';
 import { createJavaProject, reinstallJars } from './createProject';
-import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './assignmentProvider';
+import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './AssignmentProvider';
 
 export function activate(context: ExtensionContext) {
     console.log("========Extension Activated========")
