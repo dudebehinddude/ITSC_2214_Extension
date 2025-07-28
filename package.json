@@ -2,7 +2,7 @@
   "name": "itsc2214",
   "displayName": "ITSC 2214",
   "description": "An extension for UNCC ITSC2214",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "publisher": "MichaelSpitz",
   "engines": {
     "vscode": "^1.85.0"
@@ -39,22 +39,22 @@
     "commands": [
       {
         "command": "itsc2214.createJavaProject",
-        "title": "ITSC2214: Create Java Project",
+        "title": "Create Java Project",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.setupDirectory",
-        "title": "ITSC2214: Setup Project Directory",
+        "title": "Setup Project Directory",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.openDirectory",
-        "title": "ITSC2214: Open Project Directory",
+        "title": "Open Project Directory",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.reinstallJars",
-        "title": "ITSC2214: Reinstall Jars",
+        "title": "Reinstall Jars",
         "category": "ITSC2214"
       },
       {
