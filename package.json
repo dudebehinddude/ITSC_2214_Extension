@@ -2,7 +2,7 @@
   "name": "itsc2214",
   "displayName": "ITSC 2214",
   "description": "An extension for UNCC ITSC2214",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publisher": "MichaelSpitz",
   "engines": {
     "vscode": "^1.85.0"
@@ -11,7 +11,9 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:itsc2214.createJavaProject"
+    "onCommand:itsc2214.createJavaProject",
+    "onCommand:itsc2214.setupDirectory",
+    "onCommand:itsc2214.openDirectory"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -29,7 +31,7 @@
       "explorer": [
         {
           "id": "itsc2214ExplorerView",
-          "name": "ITSC2214: Assignments",
+          "name": "Assignments",
           "type": "tree"
         }
       ]
@@ -37,17 +39,27 @@
     "commands": [
       {
         "command": "itsc2214.createJavaProject",
-        "title": "ITSC2214: Create Java Project",
+        "title": "Create Java Project",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.setupDirectory",
+        "title": "Setup Project Directory",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.openDirectory",
+        "title": "Open Project Directory",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.reinstallJars",
-        "title": "ITSC2214: Reinstall Jars",
+        "title": "Reinstall Jars",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.refreshAssignments",
-        "title": "ITSC2214: Refresh Assignments",
+        "title": "Refresh Assignments",
         "icon": "$(sync)",
         "category": "ITSC2214"
       },
@@ -58,7 +70,7 @@
       },
       {
         "command": "itsc2214.setDownloadUrl",
-        "title": "ITSC2214: Set Download URL",
+        "title": "Set Download URL",
         "icon": "$(gear)",
         "category": "ITSC2214"
       }

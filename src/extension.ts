@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, window, workspace } from 'vscode';
-import { createJavaProject, reinstallJars } from './createProject';
-import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './AssignmentProvider';
+import { createJavaProject, reinstallJars, setupDirectory, openDirectory } from './createProject';
+import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './assignmentProvider';
 
 export function activate(context: ExtensionContext) {
     console.log("========Extension Activated========")
@@ -15,6 +15,8 @@ export function activate(context: ExtensionContext) {
 
     context.subscriptions.push(
         commands.registerCommand('itsc2214.createJavaProject', () => createJavaProject(context)),
+        commands.registerCommand('itsc2214.setupDirectory', () => setupDirectory(context)),
+        commands.registerCommand('itsc2214.openDirectory', () => openDirectory(context)),
         commands.registerCommand('itsc2214.reinstallJars', () => reinstallJars(context)),
         commands.registerCommand('itsc2214.setDownloadUrl', () => setDownloadUrl()),
         commands.registerCommand('itsc2214.downloadAssignment', (item) => downloadAssignment(item, context)),
