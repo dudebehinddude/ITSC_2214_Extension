@@ -11,7 +11,9 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:itsc2214.createJavaProject"
+    "onCommand:itsc2214.createJavaProject",
+    "onCommand:itsc2214.setupDirectory",
+    "onCommand:itsc2214.openDirectory"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -37,12 +39,22 @@
     "commands": [
       {
         "command": "itsc2214.createJavaProject",
-        "title": "Create Java Project",
+        "title": "ITSC2214: Create Java Project",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.setupDirectory",
+        "title": "ITSC2214: Setup Project Directory",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.openDirectory",
+        "title": "ITSC2214: Open Project Directory",
         "category": "ITSC2214"
       },
       {
         "command": "itsc2214.reinstallJars",
-        "title": "Reinstall Jars",
+        "title": "ITSC2214: Reinstall Jars",
         "category": "ITSC2214"
       },
       {

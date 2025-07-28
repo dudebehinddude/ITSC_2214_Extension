@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { Uri, commands, window } from 'vscode';
 
 async function areJarsPresent(itsc2214DirUri: vscode.Uri): Promise<boolean> {
     const projectJarsUri = vscode.Uri.joinPath(itsc2214DirUri, 'JARS');
@@ -14,7 +15,7 @@ async function areJarsPresent(itsc2214DirUri: vscode.Uri): Promise<boolean> {
 }
 
 export async function copyJarsToDir(targetBaseUri: vscode.Uri, destinationFolderName: string, context: vscode.ExtensionContext): Promise<{ success: boolean; jarsCopied: number }> {
-    const extensionJarsUri = vscode.Uri.joinPath(context.extensionUri, 'src', 'JARS');
+    const extensionJarsUri = vscode.Uri.joinPath(context.extensionUri, 'JARS');
     const targetJarsUri = vscode.Uri.joinPath(targetBaseUri, destinationFolderName);
     let jarsCopiedCount = 0;
 
@@ -34,6 +35,43 @@ export async function copyJarsToDir(targetBaseUri: vscode.Uri, destinationFolder
     } catch (error) {
         console.error('Error copying JARs:', error);
         return { success: false, jarsCopied: 0 };
+    }
+}
+
+export async function setupDirectory(context: vscode.ExtensionContext) {
+    const locationChoice = await window.showQuickPick([
+        { label: 'Desktop', description: 'Create itsc2214 folder on your Desktop' },
+        { label: 'Custom Location', description: 'Choose a folder' }
+    ], { placeHolder: 'Set up your ITSC2214 projects folder' });
+
+    if (!locationChoice) return;
+
+    let baseUri;
+    if (locationChoice.label === 'Desktop') {
+        baseUri = Uri.joinPath(Uri.file(os.homedir()), 'Desktop', 'itsc2214');
+    } else {
+        const result = await window.showOpenDialog({ canSelectFolders: true, openLabel: 'Select Parent Folder' });
+        if (result) {
+            baseUri = Uri.joinPath(result[0], 'itsc2214');
+        }
+    }
+
+    if (!baseUri) return;
+
+    await vscode.workspace.fs.createDirectory(baseUri);
+    await context.globalState.update('itsc2214Dir', baseUri.fsPath);
+    const result = await copyJarsToDir(baseUri, 'JARS', context);
+    if (result.success) {
+        window.showInformationMessage(`✅ ITSC2214 folder created at ${baseUri.fsPath} with ${result.jarsCopied} JARs.`);
+    }
+}
+
+export async function openDirectory(context: vscode.ExtensionContext) {
+    const itsc2214Dir = context.globalState.get<string>('itsc2214Dir');
+    if (itsc2214Dir) {
+        commands.executeCommand('revealFileInOS', Uri.file(itsc2214Dir));
+    } else {
+        window.showWarningMessage('ITSC2214 directory not set. Please run the setup command first.');
     }
 }
 
@@ -85,33 +123,11 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
     }
 
     if (!itsc2214Dir) {
-        const locationChoice = await vscode.window.showQuickPick([
-            { label: 'Desktop', description: 'Create itsc2214 folder on your Desktop' },
-            { label: 'Custom Location', description: 'Choose a folder' }
-        ], { placeHolder: 'Set up your ITSC2214 projects folder' });
-
-        if (!locationChoice) return;
-
-        let baseUri;
-        if (locationChoice.label === 'Desktop') {
-            const homeUri = vscode.Uri.file(os.homedir());
-            baseUri = vscode.Uri.joinPath(homeUri, 'Desktop', 'itsc2214');
-        } else {
-            const result = await vscode.window.showOpenDialog({ canSelectFolders: true, openLabel: 'Select Parent Folder' });
-            if (result) {
-                baseUri = vscode.Uri.joinPath(result[0], 'itsc2214');
-            }
+        const choice = await window.showWarningMessage('The ITSC2214 directory is not set up.', { modal: true }, 'Run Setup');
+        if (choice === 'Run Setup') {
+            await setupDirectory(context);
         }
-
-        if (!baseUri) return;
-
-        await vscode.workspace.fs.createDirectory(baseUri);
-        itsc2214Dir = baseUri.fsPath;
-        await context.globalState.update('itsc2214Dir', itsc2214Dir);
-        const result = await copyJarsToDir(baseUri, 'JARS', context);
-        if (result.success) {
-            vscode.window.showInformationMessage(`✅ ITSC2214 folder created at ${itsc2214Dir} with ${result.jarsCopied} JARs.`);
-        }
+        return;
     }
     const itsc2214DirUri = vscode.Uri.file(itsc2214Dir);
 
