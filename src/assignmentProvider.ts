@@ -109,10 +109,7 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
         return undefined;
     }
 
-    const projectsDirUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), 'projects');
-    await vscode.workspace.fs.createDirectory(projectsDirUri);
-
-    const projectUri = vscode.Uri.joinPath(projectsDirUri, itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
+    const projectUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
 
     try {
         await vscode.workspace.fs.stat(projectUri);
@@ -122,7 +119,7 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
         }
         await vscode.workspace.fs.delete(projectUri, { recursive: true });
     } catch (error) {
-        // Directory does not exist, which is fine
+        
     }
 
     await vscode.workspace.fs.createDirectory(projectUri);
@@ -145,7 +142,7 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
                 try {
                     await vscode.workspace.fs.delete(macosxUri, { recursive: true });
                 } catch (e) {
-                    // Ignore if not present
+                    
                 }
 
                 let projectRootUri = tempDirUri;

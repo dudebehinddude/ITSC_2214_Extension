@@ -31,8 +31,13 @@
       "explorer": [
         {
           "id": "itsc2214ExplorerView",
-          "name": "Assignments",
-          "type": "tree"
+          "name": "ITSC2214 Assignments",
+          "when": "explorer"
+        },
+        {
+          "id": "itsc2214UploadView",
+          "name": "Upload Project",
+          "when": "explorer"
         }
       ]
     },
@@ -73,6 +78,24 @@
         "title": "Set Download URL",
         "icon": "$(gear)",
         "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.refreshUploads",
+        "title": "Refresh Uploads",
+        "icon": "$(sync)",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.setUploadUrl",
+        "title": "Set Upload URL",
+        "icon": "$(gear)",
+        "category": "ITSC2214"
+      },
+      {
+        "command": "itsc2214.uploadProject",
+        "title": "Submit Project to Web-CAT",
+        "category": "ITSC2214",
+        "icon": "$(cloud-upload)"
       }
     ],
     "configuration": {
@@ -80,8 +103,18 @@
       "properties": {
         "itsc2214.downloadURL": {
           "type": "string",
-          "default": "https://webpages.charlotte.edu/mperez19/itsc2214/2025Spring/snarf.xml",
-          "description": "The URL to the Snarf XML file listing available assignments."
+          "default": "https://webpages.charlotte.edu/mperez19/itsc2214/2025Fall/snarf.xml",
+          "description": "The URL to the snarf file listing available assignments."
+        },
+        "itsc2214.uploadURL": {
+          "type": "string",
+          "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC",
+          "description": "The URL for submitting assignments to Web-CAT."
+        },
+        "itsc2214.submitURLs": {
+          "type": "array",
+          "default": ["https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC"],
+          "description": "An array of URLs for submitting assignments to Web-CAT."
         }
       }
     },
@@ -100,6 +133,10 @@
         {
           "id": "itsc2214ExplorerView",
           "name": "Assignments"
+        },
+        {
+          "id": "itsc2214UploadView",
+          "name": "Upload Project"
         }
       ]
     },
@@ -114,6 +151,18 @@
           "command": "itsc2214.setDownloadUrl",
           "when": "view == itsc2214ExplorerView",
           "group": "navigation"
+        },
+        {
+          "command": "itsc2214.refreshUploads",
+          "when": "view == itsc2214UploadView",
+          "group": "navigation",
+          "icon": "$(sync)"
+        },
+        {
+          "command": "itsc2214.setUploadUrl",
+          "when": "view == itsc2214UploadView",
+          "group": "navigation",
+          "icon": "$(gear)"
         }
       ],
       "view/item/context": [
@@ -121,6 +170,12 @@
           "command": "itsc2214.downloadAssignment",
           "when": "view == itsc2214ExplorerView && viewItem == assignment",
           "group": "inline"
+        },
+        {
+          "command": "itsc2214.uploadProject",
+          "when": "view == itsc2214UploadView && viewItem == project",
+          "group": "inline",
+          "icon": "$(cloud-upload)"
         }
       ]
     }
@@ -139,13 +194,21 @@
     "@types/node-fetch": "^2.6.11",
     "@types/unzip-stream": "^0.3.3",
     "@types/vscode": "^1.85.0",
-    "typescript": "^5.4.5"
+    "@types/xml2js": "^0.4.14",
+    "@types/archiver": "^5.3.1",
+    "typescript": "^5.4.5",
+    "@types/form-data": "^2.5.0",
+    "@types/stream-buffers": "^3.0.7"
   },
   "dependencies": {
-    "@types/xml2js": "^0.4.14",
-    "fast-xml-parser": "^4.4.0",
     "node-fetch": "^2.7.0",
     "unzip-stream": "^0.3.1",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "archiver": "^5.3.1",
+    "fast-xml-parser": "^4.3.6",
+    "glob": "^10.3.10",
+    "form-data": "^4.0.0",
+    "node-html-parser": "^6.1.13",
+    "stream-buffers": "^3.0.2"
   }
 }
