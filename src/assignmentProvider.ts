@@ -207,6 +207,23 @@ export async function setDownloadUrl() {
     }
 }
 
+export async function setUploadUrl() {
+    const config = vscode.workspace.getConfiguration('itsc2214');
+    const currentUrl = config.get<string>('uploadURL') || '';
+
+    const newUrl = await vscode.window.showInputBox({
+        prompt: 'Enter the assignment upload URL (Web-CAT)',
+        value: currentUrl,
+        validateInput: value => (!value || value.trim().length === 0) ? 'URL cannot be empty.' : null
+    });
+
+    if (newUrl) {
+        await config.update('uploadURL', newUrl, true);
+        vscode.window.showInformationMessage('Upload URL updated.');
+        vscode.commands.executeCommand('itsc2214.refreshUploads');
+    }
+}
+
 export function openView() {
     vscode.commands.executeCommand('workbench.view.extension.itsc2214Explorer');
 }

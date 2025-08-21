@@ -295,8 +295,11 @@ export const uploadItem = (item: AsyncItem, context: ExtensionContext) => {
         Promise.all([delay(1000), action()])
       );
     } catch (err) {
-      
-      window.showErrorMessage(`An error occurred: ${err?.message}`);
+      if (err instanceof Error) {
+        window.showErrorMessage(`An error occurred: ${err.message}`);
+      } else {
+        window.showErrorMessage(`An error occurred: ${String(err)}`);
+      }
       console.error(err);
     }
   };

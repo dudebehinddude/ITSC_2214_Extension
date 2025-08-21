@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, window, workspace } from 'vscode';
 import { createJavaProject, reinstallJars, setupDirectory, openDirectory } from './createProject';
-import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView } from './assignmentProvider';
+import { AssignmentProvider, downloadAssignment, setDownloadUrl, openView, setUploadUrl } from './assignmentProvider';
 import { UploadDataProvider, uploadItem } from './uploadProvider';
 
 export async function activate(context: ExtensionContext) {
@@ -21,6 +21,9 @@ export async function activate(context: ExtensionContext) {
         if (e.affectsConfiguration('itsc2214.downloadURL')) {
             assignmentProvider.refresh();
         }
+        if (e.affectsConfiguration('itsc2214.uploadURL')) {
+            uploadProvider.refresh();
+        }
     });
 
     context.subscriptions.push(
@@ -33,6 +36,7 @@ export async function activate(context: ExtensionContext) {
         commands.registerCommand('itsc2214.refreshAssignments', () => assignmentProvider.refresh()),
         commands.registerCommand('itsc2214.uploadProject', (item) => uploadItem(item, context)),
         commands.registerCommand('itsc2214.refreshUploads', () => uploadProvider.refresh()),
-        commands.registerCommand('itsc2214.openView', openView)
+        commands.registerCommand('itsc2214.openView', openView),
+        commands.registerCommand('itsc2214.setUploadUrl', setUploadUrl)
     );
 }
