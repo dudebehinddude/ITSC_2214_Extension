@@ -2,7 +2,7 @@
   "name": "itsc2214",
   "displayName": "ITSC 2214",
   "description": "An extension for UNCC ITSC2214",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "publisher": "MichaelSpitz",
   "engines": {
     "vscode": "^1.85.0"
@@ -10,11 +10,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:itsc2214.createJavaProject",
-    "onCommand:itsc2214.setupDirectory",
-    "onCommand:itsc2214.openDirectory"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "repository": {
     "type": "git",
@@ -28,16 +24,14 @@
   "license": "MIT",
   "contributes": {
     "views": {
-      "explorer": [
+      "itsc2214Explorer": [
         {
           "id": "itsc2214ExplorerView",
-          "name": "ITSC2214 Assignments",
-          "when": "explorer"
+          "name": "Assignments"
         },
         {
           "id": "itsc2214UploadView",
-          "name": "Upload Project",
-          "when": "explorer"
+          "name": "Upload Project"
         }
       ]
     },
@@ -110,11 +104,6 @@
           "type": "string",
           "default": "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC",
           "description": "The URL for submitting assignments to Web-CAT."
-        },
-        "itsc2214.submitURLs": {
-          "type": "array",
-          "default": ["https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=UNCC"],
-          "description": "An array of URLs for submitting assignments to Web-CAT."
         }
       }
     },
@@ -125,18 +114,6 @@
           "title": "ITSC2214",
           "icon": "icon.png",
           "when": "workspaceExists"
-        }
-      ]
-    },
-    "views": {
-      "itsc2214Explorer": [
-        {
-          "id": "itsc2214ExplorerView",
-          "name": "Assignments"
-        },
-        {
-          "id": "itsc2214UploadView",
-          "name": "Upload Project"
         }
       ]
     },
