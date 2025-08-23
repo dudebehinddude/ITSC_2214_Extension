@@ -79,13 +79,13 @@ export class UploadDataProvider extends AsyncTreeDataProvider {
   }
 
   async fetchData() {
-    const { submitURLs } = getConfig();
-    if (!submitURLs) return;
+    const config = workspace.getConfiguration('itsc2214');
+    const uploadURL = config.get<string>('uploadURL');
+    if (!uploadURL) return;
 
-    const roots = await Promise.all(submitURLs.map(this.fetchSite));
+    const root = await this.fetchSite(uploadURL);
 
-    return roots.flatMap((root) =>
-      root.groups.map(
+    return root.groups.map(
         (group: AssignmentGroup) =>
           new AsyncItem({
             label: group.name,
@@ -105,8 +105,7 @@ export class UploadDataProvider extends AsyncTreeDataProvider {
                 })
             ),
           })
-      )
-    );
+      );
   }
 
   beforeLoad() {
@@ -128,7 +127,6 @@ export class UploadDataProvider extends AsyncTreeDataProvider {
 const PROMPT_ON: { [key: string]: InputBoxOptions } = {
   "${user}": { prompt: "Web-CAT Username" },
   "${pw}": { prompt: "Web-CAT Password", password: true },
-  "${partners}": { prompt: "Partners" },
 };
 
 export const uploadItem = (item: AsyncItem, context: ExtensionContext) => {
