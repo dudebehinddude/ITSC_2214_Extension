@@ -135,22 +135,52 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
 
     const projectName = await vscode.window.showInputBox({
         prompt: 'Enter a name for your new Java project',
-        validateInput: async value => {
+        validateInput: value => {
             if (!value) return 'Project name cannot be empty.';
             if (/[/\\:*?"<>|]/.test(value)) return 'Invalid characters in project name.';
-            try {
-                const projectUri = vscode.Uri.joinPath(itsc2214DirUri, value);
-                await vscode.workspace.fs.stat(projectUri);
-                return 'A project with this name already exists.';
-            } catch {
-                return null;
-            }
+            return null;
         }
     });
 
     if (!projectName) return;
 
-    const projectUri = vscode.Uri.joinPath(itsc2214DirUri, projectName);
+    let finalProjectName = projectName;
+    let projectUri = vscode.Uri.joinPath(itsc2214DirUri, finalProjectName);
+
+    try {
+        await vscode.workspace.fs.stat(projectUri);
+        // Project exists, ask to create a copy
+        const choice = await vscode.window.showInformationMessage(
+            `Project "${projectName}" already exists. Create a new copy?`,
+            { modal: true },
+            'Yes',
+            'No'
+        );
+
+        if (choice === 'Yes') {
+            let n = 1;
+            while (true) {
+                finalProjectName = `_copy_${projectName}_${n}`;
+                projectUri = vscode.Uri.joinPath(itsc2214DirUri, finalProjectName);
+                try {
+                    await vscode.workspace.fs.stat(projectUri);
+                    n++;
+                } catch {
+                    break; // Found an available name
+                }
+            }
+        } else {
+            return; // User chose No or closed dialog
+        }
+    } catch (error) {
+        if (!(error instanceof vscode.FileSystemError && error.code === 'FileNotFound')) {
+            console.error('Error checking for project directory:', error);
+            vscode.window.showErrorMessage('An error occurred while checking for the project directory.');
+            return;
+        }
+        // If file not found, it's a new project, and we can proceed.
+    }
+    
     const srcUri = vscode.Uri.joinPath(projectUri, 'src');
     const libUri = vscode.Uri.joinPath(projectUri, 'lib');
 
@@ -169,7 +199,7 @@ export async function createJavaProject(context: vscode.ExtensionContext) {
     await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(projectUri, '.vscode'));
     await vscode.workspace.fs.writeFile(settingsUri, Buffer.from(JSON.stringify(settings, null, 4), 'utf8'));
 
-    vscode.window.showInformationMessage(`Successfully created project ${projectName}.`);
+    vscode.window.showInformationMessage(`Successfully created project ${finalProjectName}.`);
     await vscode.commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
 }
 
