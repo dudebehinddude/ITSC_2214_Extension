@@ -2,15 +2,14 @@ import * as archiver from "archiver";
 import { XMLParser } from "fast-xml-parser";
 import { glob } from "glob";
 import fetch from "node-fetch";
-import { parse as parseHTML } from "node-html-parser";
 import * as path from "path";
 import * as streamBuffers from "stream-buffers";
-import { commands, ExtensionContext, InputBoxOptions, ViewColumn, window, workspace } from "vscode";
+import { commands, ExtensionContext, InputBoxOptions, window, workspace } from "vscode";
 import * as vscode from 'vscode';
 import { AsyncItem, AsyncTreeDataProvider } from "./asyncTree";
 import { delay, getConfig } from "./utils";
 import FormData = require("form-data");
-import { readdirSync, statSync } from "fs";
+
 
 type TransportParam = { name: string; value: string };
 type Transport = { uri: string; params: TransportParam[]; fileParams: TransportParam[] };
@@ -226,66 +225,27 @@ export const uploadItem = (item: AsyncItem, context: ExtensionContext) => {
         });
       }
   
-      const panel = window.createWebviewPanel("submissionResult", "Web-CAT Submission Results", ViewColumn.Two);
-      panel.webview.html = `
-      <!DOCTYPE html>
-      <html>
-        <head><title>Submitting to Web-CAT...</title></head>
-        <body>${loadingBar}</body>
-      </html>
-      `;
-  
-      
-  
       const resp = await fetch(assignment.transport.uri, {
         method: "POST",
         body,
       });
       const html = await resp.text();
-      const tree = parseHTML(html);
-      const resultsUrl = tree.querySelector("a")?.attrs?.href;
-      const bodyElement = tree.querySelector("body");
-      if (bodyElement) {
-        bodyElement.insertAdjacentHTML("afterbegin", loadingBar);
-      }
-      panel.webview.html = tree.toString();
-  
+      const match = html.match(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"/);
+      const resultsUrl = match ? match[1] : undefined;
       
-      if (!resultsUrl) {
-        return;
-      }
-  
-      const resultsResp = await fetch(resultsUrl);
-      const resultsHtml = await resultsResp.text();
-      const resultsTree = parseHTML(resultsHtml);
-      const resultsBody = resultsTree.querySelector("body");
-      if (resultsBody) {
-        resultsBody.insertAdjacentHTML("afterbegin", infoBox(resultsUrl));
-        resultsBody.insertAdjacentHTML("afterbegin", loadingBar);
-      }
-      panel.webview.html = resultsTree.toString();
-  
-      for (let i = 0; i < 10; i++) {
-        const resp = await fetch(resultsUrl);
-        const html = await resp.text();
-        if (!html.includes("Assignment Queued for Grading")) {
-          const tree = parseHTML(html);
-          const body = tree.querySelector("body");
-          if (body) {
-            body.insertAdjacentHTML("afterbegin", infoBox(resultsUrl));
-          }
-          panel.webview.html = tree.toString();
-          return;
+      if (resultsUrl) {
+        const choice = await window.showInformationMessage(
+            "WebCAT submission successful. You can view the results in your browser.",
+            { modal: true },
+            "Open"
+        );
+
+        if (choice === "Open") {
+            vscode.env.openExternal(vscode.Uri.parse(resultsUrl));
         }
-        await delay(500);
+      } else {
+        window.showErrorMessage("Could not find submission results URL. Please check the WebCAT website directly.");
       }
-      if (resultsBody) {
-        const slider = resultsTree.querySelector(".wc-vsc-slider");
-        if (slider) {
-          resultsBody.removeChild(slider);
-        }
-      }
-      panel.webview.html = resultsTree.toString();
     };
   
     try {
@@ -301,70 +261,3 @@ export const uploadItem = (item: AsyncItem, context: ExtensionContext) => {
       console.error(err);
     }
   };
-
-const infoBox = (url: string) => `
-<div class="wc-vsc-info">
-  <p>Showing Web-CAT results. <a href="${url}">Click here to open in browser.</a>
-</div>
-<style>
-.wc-vsc-info {
-  padding: 20px;
-}
-</style>
-`;
-
-const loadingBar = `
-<div class="wc-vsc-slider">
-  <div class="wc-vsc-line"></div>
-  <div class="wc-vsc-subline wc-vsc-inc"></div>
-  <div class="wc-vsc-subline wc-vsc-dec"></div>
-</div>
-<style>
-  body {
-    overflow-x: hidden;
-  }
-  .wc-vsc-slider {
-    height: 5px;
-    margin-bottom: 10px;
-    overflow-x: hidden;
-  }
-  .wc-vsc-line {
-    position: absolute;
-    opacity: 0.4;
-    background: #4a8df8;
-    width: 150%;
-    height: 5px;
-  }
-  .wc-vsc-subline {
-    position: absolute;
-    background: #4a8df8;
-    height: 5px;
-  }
-  .wc-vsc-inc {
-    animation: increase 2s infinite;
-  }
-  .wc-vsc-dec {
-    animation: decrease 2s 0.5s infinite;
-  }
-  @keyframes increase {
-    from {
-      left: -5%;
-      width: 5%;
-    }
-    to {
-      left: 130%;
-      width: 100%;
-    }
-  }
-  @keyframes decrease {
-    from {
-      left: -80%;
-      width: 80%;
-    }
-    to {
-      left: 110%;
-      width: 10%;
-    }
-  }
-</style>
-`;

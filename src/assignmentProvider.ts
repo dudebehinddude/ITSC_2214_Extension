@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import * as path from 'path';
 import * as os from 'os';
 import * as unzip from 'unzip-stream';
-import { Parser, parseStringPromise } from 'xml2js';
+import { parseStringPromise } from 'xml2js';
 import { copyJarsToDir } from './createProject';
 
 type AssignmentItemData = {
@@ -109,17 +109,40 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
         return undefined;
     }
 
-    const projectUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-'));
+    const baseProjectName = itemData.label.replace(/[^a-zA-Z0-9- ]/g, '').replace(/\s+/g, '-');
+    let projectUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), baseProjectName);
 
     try {
         await vscode.workspace.fs.stat(projectUri);
-        const choice = await vscode.window.showWarningMessage(`Directory "${itemData.label}" already exists. Overwrite?`, "Yes", "No");
-        if (choice !== 'Yes') {
+        const choice = await vscode.window.showInformationMessage(
+            `Project "${baseProjectName}" already exists. Create a new copy?`,
+            { modal: true },
+            'Yes',
+            'No'
+        );
+
+        if (choice === 'Yes') {
+            let n = 1;
+            let finalProjectName;
+            while (true) {
+                finalProjectName = `_copy_${baseProjectName}_${n}`;
+                projectUri = vscode.Uri.joinPath(vscode.Uri.file(itsc2214Dir), finalProjectName);
+                try {
+                    await vscode.workspace.fs.stat(projectUri);
+                    n++;
+                } catch {
+                    break;
+                }
+            }
+        } else {
             return undefined;
         }
-        await vscode.workspace.fs.delete(projectUri, { recursive: true });
     } catch (error) {
-        
+        if (!(error instanceof vscode.FileSystemError && error.code === 'FileNotFound')) {
+            console.error('Error checking for project directory:', error);
+            vscode.window.showErrorMessage('An error occurred while checking for the project directory.');
+            return;
+        }
     }
 
     await vscode.workspace.fs.createDirectory(projectUri);
@@ -142,7 +165,7 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
                 try {
                     await vscode.workspace.fs.delete(macosxUri, { recursive: true });
                 } catch (e) {
-                    
+
                 }
 
                 let projectRootUri = tempDirUri;
@@ -161,7 +184,7 @@ async function downloadAndUnzip(itemData: AssignmentItemData, context: vscode.Ex
                 await vscode.workspace.fs.delete(tempDirUri, { recursive: true });
 
                 await copyJarsToDir(projectUri, 'lib', context);
-                
+
                 resolve(projectUri);
             } catch (e) {
                 reject(e);

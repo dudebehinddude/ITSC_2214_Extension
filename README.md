@@ -1,26 +1,22 @@
 # ITSC 2214 Extension
 
-A Visual Studio Code extension for creating ITSC 2214 projects, setting up JAR dependencies, and creating a class directory.
+A Visual Studio Code extension for creating ITSC 2214 projects, downloading & submitting assignments, and creating an itsc2214 directory.
 
 ## Features
 
-- **Java Project Creation**: Quickly scaffolds a new Java project with the necessary directory structure and build configurations.
-- **Assignment Downloader**: Downloads and sets up assignments from a remote server. Supports XML-based assignment lists.
+- **Java Project Creation**: Create a java project with the necessary structure and libraries.
+- **Assignment Downloader**: Downloads and sets up assignments.
+- **Assignment Submitter**: Packages and submits assignments to WebCat.
 - **JAR Management**: Automatically includes required JAR files for course projects.
 
 
 ## Usage
+Only intended for use with ITSC2214_Fall25.code-profile
+DO NOT DOWNLOAD THIS EXTENSION DIRECTLY, for proper installation see as follows:
 
-1.  Open the Command Palette (`Cmd+Shift+P` on macOS, `Ctrl+Shift+P` on Windows).
-2.  Run the "ITSC2214: Create Java Project" command.
-3.  Follow the prompts to specify the project name and location.
-4.  Use the "ITSC2214: Assignments" view in the Explorer to browse and download assignments.
-
-## Dependencies
-
--   `node-fetch`: For making HTTP requests to download assignments.
--   `unzip-stream`: For unzipping downloaded assignment files.
--   `xml2js`: For parsing XML-based assignment lists.
+1. Download ITSC2214_Fall25.code-profile from Canvas.
+2. Import the profile and select create.
+3. Wait for all extensions to download and install.
 
 ## Contributing
 
