@@ -27,6 +27,7 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
+          name: vsix-package
           # Outputs any generated vsix files
           path: |
             *.vsix
